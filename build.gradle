@@ -1,0 +1,17 @@
+group 'com.streamr'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.7'
+    compile group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: '2.7' // SLF4J log messages to Log4j
+    compile group: 'org.apache.kafka', name: 'kafka-clients', version: '0.9.0.1'
+    compile group: 'biz.paluch.redis', name: 'lettuce', version: '4.3.1.Final'
+    compile group: 'com.datastax.cassandra', name: 'cassandra-driver-core', version: '3.1.3'
+    testCompile group: 'junit', name: 'junit', version: '4.11'
+}
