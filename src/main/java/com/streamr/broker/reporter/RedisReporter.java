@@ -3,25 +3,24 @@ package com.streamr.broker.reporter;
 import com.lambdaworks.redis.RedisClient;
 import com.lambdaworks.redis.RedisURI;
 import com.lambdaworks.redis.codec.ByteArrayCodec;
-import com.lambdaworks.redis.pubsub.api.sync.RedisPubSubCommands;
+import com.lambdaworks.redis.pubsub.api.async.RedisPubSubAsyncCommands;
 import com.streamr.broker.StreamrBinaryMessageWithKafkaMetadata;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 public class RedisReporter implements Reporter {
 	private static final Logger log = LogManager.getLogger();
-	private final RedisClient client;
-	private final RedisPubSubCommands<byte[], byte[]> connection;
 
-	public RedisReporter(String url, String password) {
-		RedisURI uri = RedisURI.create(url);
-		uri.setPassword(password);
-		client = RedisClient.create(url);
-		connection = client.connectPubSub(new ByteArrayCodec()).sync(); // TODO: async version?
-		log.info("Connection created for " + uri);
+	private final RedisClient client;
+	private final RedisPubSubAsyncCommands<byte[], byte[]> connection;
+
+	public RedisReporter(String host, String password) {
+		RedisURI uri = RedisURI.Builder.redis(host).withPassword(password).build();
+		client = RedisClient.create(uri);
+		connection = client.connectPubSub(new ByteArrayCodec()).async();
+		log.info("Redis connection created for " + uri);
 	}
 
 	@Override
@@ -30,7 +29,7 @@ public class RedisReporter implements Reporter {
 	}
 
 	@Override
-	public void close() throws IOException {
+	public void close() {
 		connection.close();
 		client.shutdown();
 	}

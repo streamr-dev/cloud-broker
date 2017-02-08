@@ -1,5 +1,6 @@
 package com.streamr.broker.reporter;
 
+import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
 import com.streamr.broker.StreamrBinaryMessageWithKafkaMetadata;
@@ -8,24 +9,23 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class CassandraReporter implements Reporter {
 	private static final Logger log = LogManager.getLogger();
 
 	private static final int COMMIT_INTERVAL_MS = 1000;
-	private static final int MAX_BUNDLE = 500;
 
-	private final Map<String, Batch> batches = new HashMap<>();
+	private final Map<String, Batch> batches = new ConcurrentHashMap<>();
 	private final Timer timer = new Timer();
 	private final Session session;
-	private final CassandraInserter cassandraInserter;
+	private final CassandraStatementBuilder cassandraStatementBuilder;
 
 	public CassandraReporter(String cassandraHost, String cassandraKeySpace) {
 		Cluster cluster = Cluster.builder().addContactPoint(cassandraHost).build();
 		session = cluster.connect(cassandraKeySpace);
-		cassandraInserter = new CassandraInserter(session);
-		log.info("Created session for {} on key space '{}'",
-			cluster.getMetadata().getAllHosts(),
+		cassandraStatementBuilder = new CassandraStatementBuilder(session);
+		log.info("Cassandra session created for {} on key space '{}'", cluster.getMetadata().getAllHosts(),
 			session.getLoggedKeyspace());
 	}
 
@@ -42,12 +42,12 @@ public class CassandraReporter implements Reporter {
 	}
 
 	@Override
-	public void close() throws IOException {
+	public void close() {
 		session.getCluster().close();
 	}
 
 	private static String formKey(StreamrBinaryMessageWithKafkaMetadata msg) {
-		return msg.getStreamId() + "/" + msg.getPartition();
+		return msg.getStreamId() + "___" + msg.getPartition();
 	}
 
 	private class Batch extends TimerTask {
@@ -64,8 +64,22 @@ public class CassandraReporter implements Reporter {
 
 		@Override
 		public void run() {
-			cassandraInserter.insert(messages);
 			batches.remove(key);
+			long startTime = System.currentTimeMillis();
+			BatchStatement eventPs = cassandraStatementBuilder.eventBatchInsert(messages);
+			BatchStatement tsPs = cassandraStatementBuilder.tsBatchInsert(messages);
+			session.executeAsync(eventPs);
+			session.executeAsync(tsPs);
+			log.debug("Wrote data for {} into Cassandra. {} messages, {} bytes, and {} seconds.", key,
+				messages.size(), totalSizeInBytes(), (System.currentTimeMillis() - startTime) / 1000.0);
+		}
+
+		private long totalSizeInBytes() {
+			long total = 0;
+			for (StreamrBinaryMessageWithKafkaMetadata msg : messages) {
+				total += msg.toBytes().length;
+			}
+			return total;
 		}
 	}
 }

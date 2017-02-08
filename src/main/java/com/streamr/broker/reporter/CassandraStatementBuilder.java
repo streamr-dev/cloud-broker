@@ -4,23 +4,18 @@ import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Session;
 import com.streamr.broker.StreamrBinaryMessageWithKafkaMetadata;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.nio.ByteBuffer;
 import java.util.Date;
 import java.util.List;
 
-class CassandraInserter {
-	private static final Logger log = LogManager.getLogger();
-
+class CassandraStatementBuilder {
 	private final PreparedStatement eventInsertPs;
 	private final PreparedStatement eventInsertTtlPs;
 	private final PreparedStatement tsInsertPs;
 	private final PreparedStatement tsInsertTtlPs;
-	private final Session session;
 
-	CassandraInserter(Session session) {
+	CassandraStatementBuilder(Session session) {
 		eventInsertPs = session.prepare("INSERT INTO stream_events" +
 			" (stream, stream_partition, kafka_partition, kafka_offset, previous_offset, ts, payload)" +
 			" VALUES (?, ?, ?, ?, ?, ?, ?)");
@@ -33,16 +28,14 @@ class CassandraInserter {
 		tsInsertTtlPs = session.prepare("INSERT INTO stream_timestamps" +
 			" (stream, stream_partition, kafka_offset, ts)" +
 			" VALUES (?, ?, ?, ?) USING TTL ?");
-		this.session = session;
 	}
 
-	void insert(List<StreamrBinaryMessageWithKafkaMetadata> messages) {
-		BatchStatement eventInsertionBatch = new BatchStatement();
-		BatchStatement tsInsertionBatch = new BatchStatement();
+	BatchStatement eventBatchInsert(List<StreamrBinaryMessageWithKafkaMetadata> messages) {
+		BatchStatement batchStatement = new BatchStatement();
 
 		for (StreamrBinaryMessageWithKafkaMetadata msg : messages) {
 			if (msg.getTTL() > 0) {
-				eventInsertionBatch.add(eventInsertTtlPs.bind(
+				batchStatement.add(eventInsertTtlPs.bind(
 					msg.getStreamId(),
 					msg.getPartition(),
 					msg.getKafkaPartition(),
@@ -52,7 +45,7 @@ class CassandraInserter {
 					ByteBuffer.wrap(msg.toBytes()),
 					msg.getTTL()));
 			} else {
-				eventInsertionBatch.add(eventInsertPs.bind(
+				batchStatement.add(eventInsertPs.bind(
 					msg.getStreamId(),
 					msg.getPartition(),
 					msg.getKafkaPartition(),
@@ -63,13 +56,19 @@ class CassandraInserter {
 			}
 		}
 
+		return batchStatement;
+	}
+
+	BatchStatement tsBatchInsert(List<StreamrBinaryMessageWithKafkaMetadata> messages) {
+		BatchStatement batchStatement = new BatchStatement();
+
 		// Avoid writing sub-second timestamps for same key
 		long lastWrittenTimestamp = -1001;
 		for (StreamrBinaryMessageWithKafkaMetadata msg : messages) {
 			if (msg.getTimestamp() - lastWrittenTimestamp > 1000) {
 				lastWrittenTimestamp = msg.getTimestamp();
 				if (msg.getTTL() > 0) {
-					tsInsertionBatch.add(tsInsertTtlPs.bind(
+					batchStatement.add(tsInsertTtlPs.bind(
 						msg.getStreamId(),
 						msg.getPartition(),
 						msg.getOffset(),
@@ -77,7 +76,7 @@ class CassandraInserter {
 						msg.getTTL()
 					));
 				} else {
-					tsInsertionBatch.add(tsInsertPs.bind(
+					batchStatement.add(tsInsertPs.bind(
 						msg.getStreamId(),
 						msg.getPartition(),
 						msg.getOffset(),
@@ -87,7 +86,6 @@ class CassandraInserter {
 			}
 		}
 
-		session.execute(eventInsertionBatch); // TODO: async
-		session.execute(tsInsertionBatch);
+		return batchStatement;
 	}
 }

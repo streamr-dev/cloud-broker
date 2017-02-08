@@ -14,26 +14,27 @@ import java.util.Properties;
 
 class KafkaListener {
 	private static final Logger log = LogManager.getLogger();
+
 	private final Consumer<String, byte[]> consumer;
 
 	KafkaListener(String zookeeperHost, String groupId) {
 		consumer = new KafkaConsumer<>(makeKafkaConfig(zookeeperHost, groupId));
-		log.info("Consumer created (host: '{}', groupId: '{}')", zookeeperHost, groupId);
+		log.info("Kafka consumer created for '{}' on group '{}')", zookeeperHost, groupId);
 	}
 
-	void subscribeAndListen(String dataTopic, java.util.function.Consumer<ConsumerRecord<String, byte[]>> recordHandler) {
+	void subscribeAndListen(String dataTopic, KafkaRecordHandler recordHandler) {
 		consumer.subscribe(Collections.singletonList(dataTopic));
 		log.info("Subscribed to data topic '{}'", dataTopic);
 		try {
 			while (true) {
 				ConsumerRecords<String, byte[]> records = consumer.poll(100);
 				for (ConsumerRecord<String, byte[]> record : records) {
-					recordHandler.accept(record);
+					recordHandler.handle(record);
 				}
 			}
 		} finally {
 			consumer.close();
-			// TODO: invoke close() of reporters indirectly
+			recordHandler.close();
 		}
 	}
 
@@ -45,7 +46,6 @@ class KafkaListener {
 		properties.setProperty("auto.offset.reset", "latest");
 		properties.setProperty("key.deserializer", StringDeserializer.class.getName());
 		properties.setProperty("value.deserializer", ByteArrayDeserializer.class.getName());
-		// TODO: optimize settings for performance
 		return properties;
 	}
 }
