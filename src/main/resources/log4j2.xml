@@ -9,7 +9,7 @@
         <Logger name="com.streamr.broker" level="debug" additivity="false">
             <AppenderRef ref="Console" />
         </Logger>
-        <Root level="error" additivity="false">
+        <Root level="warn" additivity="false">
             <AppenderRef ref="Console" />
         </Root>
     </Loggers>

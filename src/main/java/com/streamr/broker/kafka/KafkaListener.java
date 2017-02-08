@@ -1,5 +1,6 @@
-package com.streamr.broker;
+package com.streamr.broker.kafka;
 
+import com.streamr.broker.StreamrBinaryMessageWithKafkaMetadata;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -12,29 +13,36 @@ import org.apache.logging.log4j.Logger;
 import java.util.Collections;
 import java.util.Properties;
 
-class KafkaListener {
+public class KafkaListener implements Runnable {
 	private static final Logger log = LogManager.getLogger();
 
+	private final KafkaRecordTransformer kafkaRecordTransformer = new KafkaRecordTransformer();
+	private final java.util.function.Consumer<StreamrBinaryMessageWithKafkaMetadata> callback;
 	private final Consumer<String, byte[]> consumer;
 
-	KafkaListener(String zookeeperHost, String groupId) {
+	public KafkaListener(String zookeeperHost, String groupId, String dataTopic,
+						 java.util.function.Consumer<StreamrBinaryMessageWithKafkaMetadata> callback) {
 		consumer = new KafkaConsumer<>(makeKafkaConfig(zookeeperHost, groupId));
 		log.info("Kafka consumer created for '{}' on group '{}')", zookeeperHost, groupId);
-	}
-
-	void subscribeAndListen(String dataTopic, KafkaRecordHandler recordHandler) {
 		consumer.subscribe(Collections.singletonList(dataTopic));
 		log.info("Subscribed to data topic '{}'", dataTopic);
+		this.callback = callback;
+	}
+
+	@Override
+	public void run() {
 		try {
 			while (true) {
 				ConsumerRecords<String, byte[]> records = consumer.poll(100);
 				for (ConsumerRecord<String, byte[]> record : records) {
-					recordHandler.handle(record);
+					callback.accept(kafkaRecordTransformer.transform(record));
 				}
 			}
+		} catch (Exception e) {
+			log.throwing(e);
 		} finally {
+			log.info("ABORTING");
 			consumer.close();
-			recordHandler.close();
 		}
 	}
 

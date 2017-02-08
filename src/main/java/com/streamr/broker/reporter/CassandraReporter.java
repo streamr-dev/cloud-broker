@@ -7,9 +7,14 @@ import com.streamr.broker.StreamrBinaryMessageWithKafkaMetadata;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class CassandraReporter implements Reporter {
 	private static final Logger log = LogManager.getLogger();
@@ -17,7 +22,7 @@ public class CassandraReporter implements Reporter {
 	private static final int COMMIT_INTERVAL_MS = 1000;
 
 	private final Map<String, Batch> batches = new ConcurrentHashMap<>();
-	private final Timer timer = new Timer();
+	private final ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
 	private final Session session;
 	private final CassandraStatementBuilder cassandraStatementBuilder;
 
@@ -36,7 +41,7 @@ public class CassandraReporter implements Reporter {
 		if (batch == null) {
 			batch = new Batch(key);
 			batches.put(key, batch);
-			timer.schedule(batch, COMMIT_INTERVAL_MS);
+			scheduledExecutor.schedule(batch, COMMIT_INTERVAL_MS, TimeUnit.MILLISECONDS);
 		}
 		batch.add(msg);
 	}
@@ -47,7 +52,7 @@ public class CassandraReporter implements Reporter {
 	}
 
 	private static String formKey(StreamrBinaryMessageWithKafkaMetadata msg) {
-		return msg.getStreamId() + "___" + msg.getPartition();
+		return msg.getStreamId() + "|" + msg.getPartition();
 	}
 
 	private class Batch extends TimerTask {

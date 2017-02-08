@@ -1,7 +1,13 @@
 package com.streamr.broker;
 
+import com.streamr.broker.kafka.KafkaListener;
 import com.streamr.broker.reporter.CassandraReporter;
 import com.streamr.broker.reporter.RedisReporter;
+
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Main {
 	public static void main(String[] args) {
@@ -13,11 +19,20 @@ public class Main {
 		String cassandraHost = System.getProperty("cassandra.host", "127.0.0.1");
 		String cassandraKeySpace = System.getProperty("cassandra.keyspace", "streamr_dev");
 
-		KafkaRecordHandler kafkaRecordHandler = new KafkaRecordHandler(
-			new RedisReporter(redisHost, redisPassword),
-			new CassandraReporter(cassandraHost, cassandraKeySpace));
+		BlockingQueue<StreamrBinaryMessageWithKafkaMetadata> queue = new ArrayBlockingQueue<>(500);
 
-		KafkaListener kafkaListener = new KafkaListener(zookeeper, kafkaGroup);
-		kafkaListener.subscribeAndListen(kafkaTopic, kafkaRecordHandler);
+		KafkaListener producer = new KafkaListener(zookeeper, kafkaGroup, kafkaTopic, new QueueProducer(queue));
+		QueueConsumer consumer = new QueueConsumer(queue,
+			new RedisReporter(redisHost, redisPassword),
+			new CassandraReporter(cassandraHost, cassandraKeySpace)
+		);
+
+		// TODO: how to get ExecutorService to actually work -.-
+		//ExecutorService producerExecutor = Executors.newSingleThreadExecutor();
+		//producerExecutor.submit(producer);
+		new Thread(producer, "queueProducer").start();
+		new Thread(consumer, "queueConsumer").start();
+		//ExecutorService consumerExecutor = Executors.newSingleThreadExecutor();
+		//consumerExecutor.submit(consumer);
 	}
 }
