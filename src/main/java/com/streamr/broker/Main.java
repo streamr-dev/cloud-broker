@@ -4,13 +4,12 @@ import com.streamr.broker.kafka.KafkaListener;
 import com.streamr.broker.reporter.CassandraReporter;
 import com.streamr.broker.reporter.RedisReporter;
 
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 public class Main {
-	public static void main(String[] args) {
+	private static final int QUEUE_SIZE = 2000;
+
+	public static void main(String[] args) throws ExecutionException, InterruptedException {
 		String zookeeper = System.getProperty("kafka.server", "127.0.0.1:9092");
 		String kafkaGroup = System.getProperty("kafka.group", "data-dev");
 		String kafkaTopic = System.getProperty("kafka.topic", "data-dev");
@@ -19,7 +18,7 @@ public class Main {
 		String cassandraHost = System.getProperty("cassandra.host", "127.0.0.1");
 		String cassandraKeySpace = System.getProperty("cassandra.keyspace", "streamr_dev");
 
-		BlockingQueue<StreamrBinaryMessageWithKafkaMetadata> queue = new ArrayBlockingQueue<>(500);
+		BlockingQueue<StreamrBinaryMessageWithKafkaMetadata> queue = new ArrayBlockingQueue<>(QUEUE_SIZE);
 
 		KafkaListener producer = new KafkaListener(zookeeper, kafkaGroup, kafkaTopic, new QueueProducer(queue));
 		QueueConsumer consumer = new QueueConsumer(queue,
@@ -27,12 +26,9 @@ public class Main {
 			new CassandraReporter(cassandraHost, cassandraKeySpace)
 		);
 
-		// TODO: how to get ExecutorService to actually work -.-
-		//ExecutorService producerExecutor = Executors.newSingleThreadExecutor();
-		//producerExecutor.submit(producer);
-		new Thread(producer, "queueProducer").start();
-		new Thread(consumer, "queueConsumer").start();
-		//ExecutorService consumerExecutor = Executors.newSingleThreadExecutor();
-		//consumerExecutor.submit(consumer);
+		ExecutorService producerExecutor = Executors.newSingleThreadExecutor(r -> new Thread(r, "producer"));
+		ExecutorService consumerExecutor = Executors.newSingleThreadExecutor(r -> new Thread(r, "consumer"));
+		producerExecutor.submit(producer);
+		consumerExecutor.submit(consumer);
 	}
 }

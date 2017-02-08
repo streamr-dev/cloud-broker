@@ -6,7 +6,7 @@ import java.util.function.Consumer;
 public class QueueProducer implements Consumer<StreamrBinaryMessageWithKafkaMetadata> {
 	private final BlockingQueue<StreamrBinaryMessageWithKafkaMetadata> queue;
 
-	public QueueProducer(BlockingQueue<StreamrBinaryMessageWithKafkaMetadata> queue) {
+	QueueProducer(BlockingQueue<StreamrBinaryMessageWithKafkaMetadata> queue) {
 		this.queue = queue;
 	}
 
