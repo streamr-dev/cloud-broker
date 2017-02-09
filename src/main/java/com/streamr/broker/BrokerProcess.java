@@ -1,7 +1,6 @@
 package com.streamr.broker;
 
 import com.streamr.broker.stats.LoggedStats;
-import com.streamr.broker.stats.Stats;
 
 import java.util.concurrent.*;
 import java.util.function.Function;
@@ -10,7 +9,7 @@ public class BrokerProcess {
 	private final ExecutorService consumerExecutor = Executors.newSingleThreadExecutor(r -> new Thread(r, "consumer"));
 	private final ExecutorService producerExecutor = Executors.newSingleThreadExecutor(r -> new Thread(r, "producer"));
 	private final ScheduledExecutorService statsExecutor = Executors.newScheduledThreadPool(1,
-		r -> new Thread(r, "status"));
+		r -> new Thread(r, "statsLogger"));
 
 	private final BlockingQueue<StreamrBinaryMessageWithKafkaMetadata> queue;
 	private final LoggedStats stats;
@@ -22,12 +21,16 @@ public class BrokerProcess {
 		stats = new LoggedStats(statsInterval);
 	}
 
-	public void setUpConsumer(Reporter... reporters) {
-		consumer = new QueueConsumer(queue, stats, reporters);
-	}
 
 	public void setUpProducer(Function<QueueProducer, Runnable> cb) {
 		producer = cb.apply(new QueueProducer(queue, stats));
+	}
+
+	public void setUpConsumer(Reporter... reporters) {
+		for (Reporter reporter : reporters) {
+			reporter.setStats(stats);
+		}
+		consumer = new QueueConsumer(queue, reporters);
 	}
 
 	public void startAll() {
@@ -36,20 +39,15 @@ public class BrokerProcess {
 		startStatsLogging();
 	}
 
-	public void startConsumer() {
-		consumerExecutor.submit(consumer);
-	}
-
 	public void startProducer() {
 		producerExecutor.submit(producer);
 	}
 
-	public void startStatsLogging() {
-		statsExecutor.scheduleAtFixedRate(stats, stats.getStatsIntervalSecs(), stats.getStatsIntervalSecs(),
-			TimeUnit.SECONDS);
+	public void startConsumer() {
+		consumerExecutor.submit(consumer);
 	}
 
-	public Stats getStats() {
-		return stats;
+	public void startStatsLogging() {
+		statsExecutor.scheduleAtFixedRate(stats, stats.getIntervalInSec(), stats.getIntervalInSec(), TimeUnit.SECONDS);
 	}
 }

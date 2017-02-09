@@ -12,7 +12,7 @@ public class LoggedStats implements Stats, Runnable {
 	private static final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	private static final Logger log = LogManager.getLogger();
 
-	private final int statsIntervalSecs;
+	private final int intervalInSec;
 	private long lastTimestamp = 0;
 	private long bytesRead = 0;
 	private long bytesWritten = 0;
@@ -21,9 +21,9 @@ public class LoggedStats implements Stats, Runnable {
 	private long lastBytesWritten = 0;
 	private int lastEventsWritten = 0;
 
-	public LoggedStats(int statsIntervalInSecs) {
-		this.statsIntervalSecs = statsIntervalInSecs;
-		log.info("Statistics reported every {} seconds", statsIntervalInSecs);
+	public LoggedStats(int intervalInSec) {
+		this.intervalInSec = intervalInSec;
+		log.info("Statistics reported every {} seconds", intervalInSec);
 	}
 
 	@Override
@@ -45,12 +45,12 @@ public class LoggedStats implements Stats, Runnable {
 			dateFormat.format(lastTimestamp),
 			(bytesRead - bytesWritten) / 1000.0, (bytesRead - lastBytesWritten) / 1000.0, (bytesWritten - lastBytesWritten) / 1000.0,
 			eventsRead - eventsWritten, eventsRead - lastEventsWritten,eventsWritten - lastEventsWritten);
-		log.info("Write throughput {} kB/s ({} event/s)", ((bytesWritten - lastBytesWritten) / 1000.0) / statsIntervalSecs, (eventsWritten - lastEventsWritten) / statsIntervalSecs);
+		log.info("Write throughput {} kB/s ({} event/s)", ((bytesWritten - lastBytesWritten) / 1000.0) / intervalInSec, (eventsWritten - lastEventsWritten) / intervalInSec);
 		lastBytesWritten = bytesWritten;
 		lastEventsWritten = eventsWritten;
 	}
 
-	public int getStatsIntervalSecs() {
-		return statsIntervalSecs;
+	public int getIntervalInSec() {
+		return intervalInSec;
 	}
 }
