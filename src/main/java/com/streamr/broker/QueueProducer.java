@@ -5,15 +5,20 @@ import java.util.function.Consumer;
 
 public class QueueProducer implements Consumer<StreamrBinaryMessageWithKafkaMetadata> {
 	private final BlockingQueue<StreamrBinaryMessageWithKafkaMetadata> queue;
+	private final Stats stats;
 
-	QueueProducer(BlockingQueue<StreamrBinaryMessageWithKafkaMetadata> queue) {
+	QueueProducer(BlockingQueue<StreamrBinaryMessageWithKafkaMetadata> queue, Stats stats) {
 		this.queue = queue;
+		this.stats = stats;
 	}
 
 	@Override
 	public void accept(StreamrBinaryMessageWithKafkaMetadata msg) {
 		try {
 			queue.put(msg);
+			stats.eventsRead++;
+			stats.lastTimestamp = msg.getTimestamp();
+			stats.bytesRead += msg.toBytes().length; // TODO: faster implementation
 		} catch (InterruptedException e) {
 			throw new RuntimeException(e);
 		}

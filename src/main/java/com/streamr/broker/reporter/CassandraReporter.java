@@ -70,21 +70,10 @@ public class CassandraReporter implements Reporter {
 		@Override
 		public void run() {
 			batches.remove(key);
-			long startTime = System.currentTimeMillis();
 			BatchStatement eventPs = cassandraStatementBuilder.eventBatchInsert(messages);
 			BatchStatement tsPs = cassandraStatementBuilder.tsBatchInsert(messages);
 			session.executeAsync(eventPs);
 			session.executeAsync(tsPs);
-			log.debug("Wrote data for {} into Cassandra. {} messages, {} bytes, and {} seconds.", key,
-				messages.size(), totalSizeInBytes(), (System.currentTimeMillis() - startTime) / 1000.0);
-		}
-
-		private long totalSizeInBytes() {
-			long total = 0;
-			for (StreamrBinaryMessageWithKafkaMetadata msg : messages) {
-				total += msg.toBytes().length;
-			}
-			return total;
 		}
 	}
 }

@@ -12,10 +12,12 @@ public class QueueConsumer implements Runnable {
 	private static final Logger log = LogManager.getLogger();
 
 	private final BlockingQueue<StreamrBinaryMessageWithKafkaMetadata> queue;
+	private final Stats stats;
 	private final List<Reporter> reporters;
 
-	QueueConsumer(BlockingQueue<StreamrBinaryMessageWithKafkaMetadata> queue, Reporter... reporterArgs) {
+	QueueConsumer(BlockingQueue<StreamrBinaryMessageWithKafkaMetadata> queue, Stats stats, Reporter... reporterArgs) {
 		this.queue = queue;
+		this.stats = stats;
 		this.reporters = Arrays.asList(reporterArgs);
 	}
 
@@ -31,7 +33,7 @@ public class QueueConsumer implements Runnable {
 		} catch (InterruptedException e) {
 			log.catching(e);
 		} finally {
-			log.info("ABORTING");
+			log.info("Aborting...");
 			for (Reporter reporter : reporters) {
 				reporter.close();
 			}

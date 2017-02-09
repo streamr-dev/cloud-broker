@@ -41,7 +41,7 @@ public class KafkaListener implements Runnable {
 		} catch (Exception e) {
 			log.throwing(e);
 		} finally {
-			log.info("ABORTING");
+			log.info("Aborting...");
 			consumer.close();
 		}
 	}
