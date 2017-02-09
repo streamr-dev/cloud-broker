@@ -28,14 +28,18 @@ public class CassandraBatchReporter implements Reporter {
 	private final ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
 	private final Session session;
 	private final CassandraStatementBuilder cassandraStatementBuilder;
-	private final Stats stats;
+	private Stats stats;
 
-	public CassandraBatchReporter(String cassandraHost, String cassandraKeySpace, Stats stats) {
+	public CassandraBatchReporter(String cassandraHost, String cassandraKeySpace) {
 		Cluster cluster = Cluster.builder().addContactPoint(cassandraHost).build();
 		session = cluster.connect(cassandraKeySpace);
 		cassandraStatementBuilder = new CassandraStatementBuilder(session);
 		log.info("Cassandra session created for {} on key space '{}'", cluster.getMetadata().getAllHosts(),
 			session.getLoggedKeyspace());
+	}
+
+	@Override
+	public void setStats(Stats stats) {
 		this.stats = stats;
 	}
 

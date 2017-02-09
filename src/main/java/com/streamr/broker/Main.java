@@ -23,7 +23,7 @@ public class Main {
 			new KafkaListener(zookeeper, kafkaGroup, kafkaTopic, queueProducer)));
 		brokerProcess.setUpConsumer(
 			new RedisReporter(redisHost, redisPassword),
-			new CassandraReporter(cassandraHost, cassandraKeySpace, brokerProcess.getStats())
+			new CassandraReporter(cassandraHost, cassandraKeySpace)
 		);
 		brokerProcess.startAll();
 	}

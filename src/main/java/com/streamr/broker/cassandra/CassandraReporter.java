@@ -18,15 +18,19 @@ public class CassandraReporter implements Reporter {
 	private final Session session;
 	private final CassandraStatementBuilder cassandraStatementBuilder;
 	private final Semaphore semaphore;
-	private final Stats stats;
+	private Stats stats;
 
-	public CassandraReporter(String cassandraHost, String cassandraKeySpace, Stats stats) {
+	public CassandraReporter(String cassandraHost, String cassandraKeySpace) {
 		Cluster cluster = Cluster.builder().addContactPoint(cassandraHost).build();
 		session = cluster.connect(cassandraKeySpace);
 		cassandraStatementBuilder = new CassandraStatementBuilder(session);
 		semaphore = new Semaphore(cluster.getConfiguration().getPoolingOptions().getMaxQueueSize(), true);
 		log.info("Cassandra session created for {} on key space '{}'", cluster.getMetadata().getAllHosts(),
 			session.getLoggedKeyspace());
+	}
+
+	@Override
+	public void setStats(Stats stats) {
 		this.stats = stats;
 	}
 

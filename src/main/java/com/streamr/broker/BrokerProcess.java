@@ -23,7 +23,7 @@ public class BrokerProcess {
 	}
 
 	public void setUpConsumer(Reporter... reporters) {
-		consumer = new QueueConsumer(queue, reporters);
+		consumer = new QueueConsumer(queue, stats, reporters);
 	}
 
 	public void setUpProducer(Function<QueueProducer, Runnable> cb) {
