@@ -32,7 +32,8 @@ public class Main {
 		producerExecutor.submit(producer);
 		consumerExecutor.submit(consumer);
 
-		ScheduledExecutorService statusExecutor = Executors.newScheduledThreadPool(1, r -> new Thread(r, "status"));
-		statusExecutor.scheduleAtFixedRate(stats::report, 1, statsInterval, TimeUnit.SECONDS);
+		ScheduledExecutorService statsExecutor = Executors.newScheduledThreadPool(1,
+			r -> new Thread(r, "status"));
+		statsExecutor.scheduleAtFixedRate(stats::report, statsInterval, statsInterval, TimeUnit.SECONDS);
 	}
 }
