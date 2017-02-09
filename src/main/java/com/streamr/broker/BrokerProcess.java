@@ -56,8 +56,8 @@ public class BrokerProcess {
 		statsExecutor.scheduleAtFixedRate(stats::report, intervalInSec, intervalInSec, TimeUnit.SECONDS);
 	}
 
-	public void kill() {
-		producerExecutor.shutdownNow();
+	public void shutdown() {
+		producerExecutor.shutdownNow(); // todo: wait for empty
 		consumerExecutor.shutdownNow();
 		statsExecutor.shutdownNow();
 		stats.stop();

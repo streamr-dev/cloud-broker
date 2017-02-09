@@ -25,7 +25,7 @@ public class CassandraReporter implements Reporter {
 		session = cluster.connect(cassandraKeySpace);
 		cassandraStatementBuilder = new CassandraStatementBuilder(session);
 		semaphore = new Semaphore(cluster.getConfiguration().getPoolingOptions().getMaxQueueSize(), true);
-		log.info("Cassandra session created for {} on key space '{}'", cluster.getMetadata().getAllHosts(),
+		log.info("Cassandra session created for {} on keyspace '{}'", cluster.getMetadata().getAllHosts(),
 			session.getLoggedKeyspace());
 	}
 

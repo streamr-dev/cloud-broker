@@ -38,7 +38,7 @@ public class KafkaListener implements Runnable {
 					callback.accept(kafkaRecordTransformer.transform(record));
 				}
 			}
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			log.throwing(e);
 		} finally {
 			log.info("Aborting...");

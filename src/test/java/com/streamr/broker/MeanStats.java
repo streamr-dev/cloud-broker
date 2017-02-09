@@ -4,7 +4,7 @@ import com.streamr.broker.stats.Stats;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class MeanStats implements Stats {
+class MeanStats implements Stats {
 	private static final Logger log = LogManager.getLogger();
 
 	private long totalBytesRead = 0;
@@ -23,6 +23,7 @@ public class MeanStats implements Stats {
 
 	@Override
 	public void stop() {
+		report();
 		log.info("Finished in {} seconds.", (System.currentTimeMillis() - startTime) / 1000);
 	}
 

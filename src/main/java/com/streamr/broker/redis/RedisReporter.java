@@ -11,12 +11,14 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.Semaphore;
 
 public class RedisReporter implements Reporter {
 	private static final Logger log = LogManager.getLogger();
 
 	private final RedisClient client;
 	private final RedisPubSubAsyncCommands<byte[], byte[]> connection;
+	private final Semaphore semaphore = new Semaphore(256);
 	private Stats stats;
 
 	public RedisReporter(String host, String password) {
@@ -26,7 +28,6 @@ public class RedisReporter implements Reporter {
 		log.info("Redis connection created for " + uri);
 	}
 
-
 	@Override
 	public void setStats(Stats stats) {
 		this.stats = stats;
@@ -34,8 +35,11 @@ public class RedisReporter implements Reporter {
 
 	@Override
 	public void report(StreamrBinaryMessageWithKafkaMetadata msg) {
-		connection.publish(formKey(msg), msg.toBytesWithKafkaMetadata())
-			.thenRun(() -> stats.onWrittenToRedis(msg));
+		semaphore.acquireUninterruptibly();
+		connection.publish(formKey(msg), msg.toBytesWithKafkaMetadata()).thenRunAsync(() -> {
+			stats.onWrittenToRedis(msg);
+			semaphore.release();
+		});
 	}
 
 	@Override

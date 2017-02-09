@@ -4,7 +4,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
@@ -29,6 +28,8 @@ public class QueueConsumer implements Runnable {
 				}
 			}
 		} catch (InterruptedException e) {
+			log.info("Interrupted.");
+		} catch  (Throwable e) {
 			log.catching(e);
 		} finally {
 			log.info("Aborting...");
