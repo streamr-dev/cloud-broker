@@ -25,13 +25,13 @@ public class Stats implements Runnable {
 		log.info("Statistics reported every {} seconds", statsIntervalInSecs);
 	}
 
-	void onMessageProduced(StreamrBinaryMessageWithKafkaMetadata msg) {
+	void onReadFromKafka(StreamrBinaryMessageWithKafkaMetadata msg) {
 		eventsRead++;
 		bytesRead += msg.sizeInBytes();
 		lastTimestamp = msg.getTimestamp();
 	}
 
-	public void onWrittenToKafka(StreamrBinaryMessageWithKafkaMetadata msg) {
+	public void onWrittenToCassandra(StreamrBinaryMessageWithKafkaMetadata msg) {
 		eventsWritten++;
 		bytesWritten += msg.sizeInBytes();
 	}
