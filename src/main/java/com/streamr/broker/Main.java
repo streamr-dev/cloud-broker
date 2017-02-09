@@ -23,7 +23,7 @@ public class Main {
 		Stats stats = new Stats(STATS_INTERVAL_SECS);
 
 		KafkaListener producer = new KafkaListener(zookeeper, kafkaGroup, kafkaTopic, new QueueProducer(queue, stats));
-		QueueConsumer consumer = new QueueConsumer(queue, stats,
+		QueueConsumer consumer = new QueueConsumer(queue,
 			new RedisReporter(redisHost, redisPassword),
 			new CassandraReporter(cassandraHost, cassandraKeySpace, stats)
 		);

@@ -12,12 +12,10 @@ public class QueueConsumer implements Runnable {
 	private static final Logger log = LogManager.getLogger();
 
 	private final BlockingQueue<StreamrBinaryMessageWithKafkaMetadata> queue;
-	private final Stats stats;
 	private final List<Reporter> reporters;
 
-	QueueConsumer(BlockingQueue<StreamrBinaryMessageWithKafkaMetadata> queue, Stats stats, Reporter... reporterArgs) {
+	QueueConsumer(BlockingQueue<StreamrBinaryMessageWithKafkaMetadata> queue, Reporter... reporterArgs) {
 		this.queue = queue;
-		this.stats = stats;
 		this.reporters = Arrays.asList(reporterArgs);
 	}
 
