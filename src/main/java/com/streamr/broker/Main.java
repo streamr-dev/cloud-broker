@@ -7,9 +7,6 @@ import com.streamr.broker.reporter.RedisReporter;
 import java.util.concurrent.*;
 
 public class Main {
-	private static final int QUEUE_SIZE = 2000;
-	private static final int STATS_INTERVAL_SECS = 3;
-
 	public static void main(String[] args) throws ExecutionException, InterruptedException {
 		String zookeeper = System.getProperty("kafka.server", "127.0.0.1:9092");
 		String kafkaGroup = System.getProperty("kafka.group", "data-dev");
@@ -18,9 +15,11 @@ public class Main {
 		String redisPassword = System.getProperty("redis.password", "kakka");
 		String cassandraHost = System.getProperty("cassandra.host", "127.0.0.1");
 		String cassandraKeySpace = System.getProperty("cassandra.keyspace", "streamr_dev");
+		int queueSize = Integer.parseInt(System.getProperty("queuesize", "2000"));
+		int statsInterval = Integer.parseInt(System.getProperty("statsinterval", "3"));
 
-		BlockingQueue<StreamrBinaryMessageWithKafkaMetadata> queue = new ArrayBlockingQueue<>(QUEUE_SIZE);
-		Stats stats = new Stats(STATS_INTERVAL_SECS);
+		BlockingQueue<StreamrBinaryMessageWithKafkaMetadata> queue = new ArrayBlockingQueue<>(queueSize);
+		Stats stats = new Stats(statsInterval);
 
 		KafkaListener producer = new KafkaListener(zookeeper, kafkaGroup, kafkaTopic, new QueueProducer(queue, stats));
 		QueueConsumer consumer = new QueueConsumer(queue,
@@ -34,6 +33,6 @@ public class Main {
 		consumerExecutor.submit(consumer);
 
 		ScheduledExecutorService statusExecutor = Executors.newScheduledThreadPool(1, r -> new Thread(r, "status"));
-		statusExecutor.scheduleAtFixedRate(stats::report, 1, STATS_INTERVAL_SECS, TimeUnit.SECONDS);
+		statusExecutor.scheduleAtFixedRate(stats::report, 1, statsInterval, TimeUnit.SECONDS);
 	}
 }
