@@ -83,6 +83,10 @@ public class StreamrBinaryMessage {
 		return bb.array();
 	}
 
+	public int sizeInBytes() {
+		return 1 + 8 + 4 + 1 + streamIdAsBytes.length + 1 + 1 + 4 + content.length;
+	}
+
 	public String getStreamId() {
 		return streamId;
 	}
