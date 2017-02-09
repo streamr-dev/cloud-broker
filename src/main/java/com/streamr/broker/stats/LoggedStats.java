@@ -8,11 +8,11 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
 // TODO: synchronization
-public class LoggedStats implements Stats, Runnable {
-	private static final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+public class LoggedStats implements Stats {
 	private static final Logger log = LogManager.getLogger();
+	private static final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-	private final int intervalInSec;
+	private int intervalInSec = -1;
 	private long lastTimestamp = 0;
 	private long bytesRead = 0;
 	private long bytesWritten = 0;
@@ -21,9 +21,10 @@ public class LoggedStats implements Stats, Runnable {
 	private long lastBytesWritten = 0;
 	private int lastEventsWritten = 0;
 
-	public LoggedStats(int intervalInSec) {
+	@Override
+	public void start(int intervalInSec) {
 		this.intervalInSec = intervalInSec;
-		log.info("Statistics reported every {} seconds", intervalInSec);
+		log.info("Statistics logger started. Logging interval is {} sec(s).", intervalInSec);
 	}
 
 	@Override
@@ -40,7 +41,9 @@ public class LoggedStats implements Stats, Runnable {
 	}
 
 	@Override
-	public void run() {
+	public void onWrittenToRedis(StreamrBinaryMessageWithKafkaMetadata msg) {}
+
+	public void report() {
 		log.info("Last timestamp {}. Backpressure {} kB (={}-{})  [{} events (={}-{})]",
 			dateFormat.format(lastTimestamp),
 			(bytesRead - bytesWritten) / 1000.0, (bytesRead - lastBytesWritten) / 1000.0, (bytesWritten - lastBytesWritten) / 1000.0,
@@ -48,9 +51,5 @@ public class LoggedStats implements Stats, Runnable {
 		log.info("Write throughput {} kB/s ({} event/s)", ((bytesWritten - lastBytesWritten) / 1000.0) / intervalInSec, (eventsWritten - lastEventsWritten) / intervalInSec);
 		lastBytesWritten = bytesWritten;
 		lastEventsWritten = eventsWritten;
-	}
-
-	public int getIntervalInSec() {
-		return intervalInSec;
 	}
 }

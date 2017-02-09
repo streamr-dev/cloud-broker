@@ -23,7 +23,7 @@ public class KafkaListener implements Runnable {
 	public KafkaListener(String zookeeperHost, String groupId, String dataTopic,
 						 java.util.function.Consumer<StreamrBinaryMessageWithKafkaMetadata> callback) {
 		consumer = new KafkaConsumer<>(makeKafkaConfig(zookeeperHost, groupId));
-		log.info("Kafka consumer created for '{}' in consumer group '{}')", zookeeperHost, groupId);
+		log.info("Kafka consumer created for '{}' in consumer group '{}'", zookeeperHost, groupId);
 		consumer.subscribe(Collections.singletonList(dataTopic));
 		log.info("Subscribed to data topic '{}'", dataTopic);
 		this.callback = callback;

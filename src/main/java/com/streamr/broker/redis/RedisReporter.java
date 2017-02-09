@@ -17,6 +17,7 @@ public class RedisReporter implements Reporter {
 
 	private final RedisClient client;
 	private final RedisPubSubAsyncCommands<byte[], byte[]> connection;
+	private Stats stats;
 
 	public RedisReporter(String host, String password) {
 		RedisURI uri = RedisURI.Builder.redis(host).withPassword(password).build();
@@ -27,11 +28,14 @@ public class RedisReporter implements Reporter {
 
 
 	@Override
-	public void setStats(Stats stats) {}
+	public void setStats(Stats stats) {
+		this.stats = stats;
+	}
 
 	@Override
 	public void report(StreamrBinaryMessageWithKafkaMetadata msg) {
-		connection.publish(formKey(msg), msg.toBytesWithKafkaMetadata());
+		connection.publish(formKey(msg), msg.toBytesWithKafkaMetadata())
+			.thenRun(() -> stats.onWrittenToRedis(msg));
 	}
 
 	@Override

@@ -3,6 +3,7 @@ package com.streamr.broker;
 import com.streamr.broker.kafka.KafkaListener;
 import com.streamr.broker.cassandra.CassandraReporter;
 import com.streamr.broker.redis.RedisReporter;
+import com.streamr.broker.stats.LoggedStats;
 
 import java.util.concurrent.*;
 
@@ -19,6 +20,7 @@ public class Main {
 		int statsInterval = Integer.parseInt(System.getProperty("statsinterval", "3"));
 
 		BrokerProcess brokerProcess = new BrokerProcess(queueSize, statsInterval);
+		brokerProcess.setStats(new LoggedStats());
 		brokerProcess.setUpProducer((queueProducer ->
 			new KafkaListener(zookeeper, kafkaGroup, kafkaTopic, queueProducer)));
 		brokerProcess.setUpConsumer(
