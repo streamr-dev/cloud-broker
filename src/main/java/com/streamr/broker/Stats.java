@@ -7,7 +7,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
 // TODO: synchronization
-public class Stats {
+public class Stats implements Runnable {
 	private static final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	private static final Logger log = LogManager.getLogger();
 
@@ -20,18 +20,9 @@ public class Stats {
 	private long lastBytesWritten = 0;
 	private int lastEventsWritten = 0;
 
-	Stats(int statsIntervalSecs) {
-		this.statsIntervalSecs = statsIntervalSecs;
-	}
-
-	void report() {
-		log.info("Last timestamp {}. Backpressure {} kB (={}-{})  [{} events (={}-{})]",
-			dateFormat.format(lastTimestamp),
-			(bytesRead - bytesWritten) / 1000.0, (bytesRead - lastBytesWritten) / 1000.0, (bytesWritten - lastBytesWritten) / 1000.0,
-			eventsRead - eventsWritten, eventsRead - lastEventsWritten,eventsWritten - lastEventsWritten);
-		log.info("Write throughput {} kB/s ({} event/s)", ((bytesWritten - lastBytesWritten) / 1000.0) / statsIntervalSecs, (eventsWritten - lastEventsWritten) / statsIntervalSecs);
-		lastBytesWritten = bytesWritten;
-		lastEventsWritten = eventsWritten;
+	public Stats(int statsIntervalInSecs) {
+		this.statsIntervalSecs = statsIntervalInSecs;
+		log.info("Statistics reported every {} seconds", statsIntervalInSecs);
 	}
 
 	void onMessageProduced(StreamrBinaryMessageWithKafkaMetadata msg) {
@@ -43,5 +34,20 @@ public class Stats {
 	public void onWrittenToKafka(StreamrBinaryMessageWithKafkaMetadata msg) {
 		eventsWritten++;
 		bytesWritten += msg.sizeInBytes();
+	}
+
+	@Override
+	public void run() {
+		log.info("Last timestamp {}. Backpressure {} kB (={}-{})  [{} events (={}-{})]",
+			dateFormat.format(lastTimestamp),
+			(bytesRead - bytesWritten) / 1000.0, (bytesRead - lastBytesWritten) / 1000.0, (bytesWritten - lastBytesWritten) / 1000.0,
+			eventsRead - eventsWritten, eventsRead - lastEventsWritten,eventsWritten - lastEventsWritten);
+		log.info("Write throughput {} kB/s ({} event/s)", ((bytesWritten - lastBytesWritten) / 1000.0) / statsIntervalSecs, (eventsWritten - lastEventsWritten) / statsIntervalSecs);
+		lastBytesWritten = bytesWritten;
+		lastEventsWritten = eventsWritten;
+	}
+
+	public int getStatsIntervalSecs() {
+		return statsIntervalSecs;
 	}
 }

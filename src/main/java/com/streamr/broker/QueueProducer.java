@@ -7,7 +7,7 @@ public class QueueProducer implements Consumer<StreamrBinaryMessageWithKafkaMeta
 	private final BlockingQueue<StreamrBinaryMessageWithKafkaMetadata> queue;
 	private final Stats stats;
 
-	QueueProducer(BlockingQueue<StreamrBinaryMessageWithKafkaMetadata> queue, Stats stats) {
+	public QueueProducer(BlockingQueue<StreamrBinaryMessageWithKafkaMetadata> queue, Stats stats) {
 		this.queue = queue;
 		this.stats = stats;
 	}

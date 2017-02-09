@@ -18,22 +18,13 @@ public class Main {
 		int queueSize = Integer.parseInt(System.getProperty("queuesize", "2000"));
 		int statsInterval = Integer.parseInt(System.getProperty("statsinterval", "3"));
 
-		BlockingQueue<StreamrBinaryMessageWithKafkaMetadata> queue = new ArrayBlockingQueue<>(queueSize);
-		Stats stats = new Stats(statsInterval);
-
-		KafkaListener producer = new KafkaListener(zookeeper, kafkaGroup, kafkaTopic, new QueueProducer(queue, stats));
-		QueueConsumer consumer = new QueueConsumer(queue,
+		BrokerProcess brokerProcess = new BrokerProcess(queueSize, statsInterval);
+		brokerProcess.setUpProducer((queueProducer ->
+			new KafkaListener(zookeeper, kafkaGroup, kafkaTopic, queueProducer)));
+		brokerProcess.setUpConsumer(
 			new RedisReporter(redisHost, redisPassword),
-			new CassandraReporter(cassandraHost, cassandraKeySpace, stats)
+			new CassandraReporter(cassandraHost, cassandraKeySpace, brokerProcess.getStats())
 		);
-
-		ExecutorService producerExecutor = Executors.newSingleThreadExecutor(r -> new Thread(r, "producer"));
-		ExecutorService consumerExecutor = Executors.newSingleThreadExecutor(r -> new Thread(r, "consumer"));
-		producerExecutor.submit(producer);
-		consumerExecutor.submit(consumer);
-
-		ScheduledExecutorService statsExecutor = Executors.newScheduledThreadPool(1,
-			r -> new Thread(r, "status"));
-		statsExecutor.scheduleAtFixedRate(stats::report, statsInterval, statsInterval, TimeUnit.SECONDS);
+		brokerProcess.startAll();
 	}
 }

@@ -14,7 +14,7 @@ public class QueueConsumer implements Runnable {
 	private final BlockingQueue<StreamrBinaryMessageWithKafkaMetadata> queue;
 	private final List<Reporter> reporters;
 
-	QueueConsumer(BlockingQueue<StreamrBinaryMessageWithKafkaMetadata> queue, Reporter... reporterArgs) {
+	public QueueConsumer(BlockingQueue<StreamrBinaryMessageWithKafkaMetadata> queue, Reporter... reporterArgs) {
 		this.queue = queue;
 		this.reporters = Arrays.asList(reporterArgs);
 	}
