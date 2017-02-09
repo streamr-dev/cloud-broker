@@ -23,7 +23,7 @@ public class KafkaListener implements Runnable {
 	public KafkaListener(String zookeeperHost, String groupId, String dataTopic,
 						 java.util.function.Consumer<StreamrBinaryMessageWithKafkaMetadata> callback) {
 		consumer = new KafkaConsumer<>(makeKafkaConfig(zookeeperHost, groupId));
-		log.info("Kafka consumer created for '{}' on group '{}')", zookeeperHost, groupId);
+		log.info("Kafka consumer created for '{}' in consumer group '{}')", zookeeperHost, groupId);
 		consumer.subscribe(Collections.singletonList(dataTopic));
 		log.info("Subscribed to data topic '{}'", dataTopic);
 		this.callback = callback;
@@ -33,7 +33,7 @@ public class KafkaListener implements Runnable {
 	public void run() {
 		try {
 			while (true) {
-				ConsumerRecords<String, byte[]> records = consumer.poll(100);
+				ConsumerRecords<String, byte[]> records = consumer.poll(Long.MAX_VALUE); // wait indefinitely
 				for (ConsumerRecord<String, byte[]> record : records) {
 					callback.accept(kafkaRecordTransformer.transform(record));
 				}
