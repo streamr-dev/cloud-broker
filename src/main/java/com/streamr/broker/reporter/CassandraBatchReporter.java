@@ -66,8 +66,7 @@ public class CassandraBatchReporter implements Reporter {
 			@Override
 			public void onSuccess(List<ResultSet> result) {
 				for (StreamrBinaryMessageWithKafkaMetadata msg : messages) {
-					stats.eventsWritten++;
-					stats.bytesWritten += msg.toBytes().length; // TODO: Faster implementation
+					stats.onWrittenToKafka(msg);
 				}
 			}
 

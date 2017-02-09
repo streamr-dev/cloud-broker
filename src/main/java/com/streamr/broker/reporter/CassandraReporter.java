@@ -40,8 +40,7 @@ public class CassandraReporter implements Reporter {
 			@Override
 			public void onSuccess(List<ResultSet> result) {
 				semaphore.release();
-				stats.eventsWritten++;
-				stats.bytesWritten += msg.sizeInBytes();
+				stats.onWrittenToKafka(msg);
 			}
 
 			@Override

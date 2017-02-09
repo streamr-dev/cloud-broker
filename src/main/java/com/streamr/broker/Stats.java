@@ -11,13 +11,12 @@ public class Stats {
 	private static final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	private static final Logger log = LogManager.getLogger();
 
-	public long bytesRead = 0;
-	public long bytesWritten = 0;
-	public int eventsRead = 0;
-	public int eventsWritten = 0;
-	public long lastTimestamp = 0;
-
 	private final int statsIntervalSecs;
+	private long lastTimestamp = 0;
+	private long bytesRead = 0;
+	private long bytesWritten = 0;
+	private int eventsRead = 0;
+	private int eventsWritten = 0;
 	private long lastBytesWritten = 0;
 	private int lastEventsWritten = 0;
 
@@ -33,5 +32,16 @@ public class Stats {
 		log.info("Write throughput {} kB/s ({} event/s)", ((bytesWritten - lastBytesWritten) / 1000.0) / statsIntervalSecs, (eventsWritten - lastEventsWritten) / statsIntervalSecs);
 		lastBytesWritten = bytesWritten;
 		lastEventsWritten = eventsWritten;
+	}
+
+	void onMessageProduced(StreamrBinaryMessageWithKafkaMetadata msg) {
+		eventsRead++;
+		bytesRead += msg.sizeInBytes();
+		lastTimestamp = msg.getTimestamp();
+	}
+
+	public void onWrittenToKafka(StreamrBinaryMessageWithKafkaMetadata msg) {
+		eventsWritten++;
+		bytesWritten += msg.sizeInBytes();
 	}
 }

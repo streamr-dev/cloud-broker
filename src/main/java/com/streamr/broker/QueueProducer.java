@@ -16,9 +16,7 @@ public class QueueProducer implements Consumer<StreamrBinaryMessageWithKafkaMeta
 	public void accept(StreamrBinaryMessageWithKafkaMetadata msg) {
 		try {
 			queue.put(msg);
-			stats.eventsRead++;
-			stats.lastTimestamp = msg.getTimestamp();
-			stats.bytesRead += msg.sizeInBytes();
+			stats.onMessageProduced(msg);
 		} catch (InterruptedException e) {
 			throw new RuntimeException(e);
 		}
