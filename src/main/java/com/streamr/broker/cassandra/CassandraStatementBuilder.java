@@ -1,4 +1,4 @@
-package com.streamr.broker.reporter;
+package com.streamr.broker.cassandra;
 
 import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.BoundStatement;

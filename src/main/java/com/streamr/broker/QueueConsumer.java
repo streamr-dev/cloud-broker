@@ -1,6 +1,5 @@
 package com.streamr.broker;
 
-import com.streamr.broker.reporter.Reporter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

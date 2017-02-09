@@ -1,10 +1,11 @@
-package com.streamr.broker.reporter;
+package com.streamr.broker.cassandra;
 
 import com.datastax.driver.core.*;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
-import com.streamr.broker.Stats;
+import com.streamr.broker.stats.Stats;
 import com.streamr.broker.StreamrBinaryMessageWithKafkaMetadata;
+import com.streamr.broker.Reporter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

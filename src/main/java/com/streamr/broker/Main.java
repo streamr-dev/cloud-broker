@@ -1,8 +1,8 @@
 package com.streamr.broker;
 
 import com.streamr.broker.kafka.KafkaListener;
-import com.streamr.broker.reporter.CassandraReporter;
-import com.streamr.broker.reporter.RedisReporter;
+import com.streamr.broker.cassandra.CassandraReporter;
+import com.streamr.broker.redis.RedisReporter;
 
 import java.util.concurrent.*;
 

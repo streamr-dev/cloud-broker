@@ -1,5 +1,7 @@
 package com.streamr.broker;
 
+import com.streamr.broker.stats.Stats;
+
 import java.util.concurrent.BlockingQueue;
 import java.util.function.Consumer;
 

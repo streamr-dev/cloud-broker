@@ -1,6 +1,7 @@
 package com.streamr.broker;
 
-import com.streamr.broker.reporter.Reporter;
+import com.streamr.broker.stats.LoggedStats;
+import com.streamr.broker.stats.Stats;
 
 import java.util.concurrent.*;
 import java.util.function.Function;
@@ -12,13 +13,13 @@ public class BrokerProcess {
 		r -> new Thread(r, "status"));
 
 	private final BlockingQueue<StreamrBinaryMessageWithKafkaMetadata> queue;
-	private final Stats stats;
+	private final LoggedStats stats;
 	private Runnable consumer;
 	private Runnable producer;
 
 	public BrokerProcess(int queueSize, int statsInterval) {
 		queue = new ArrayBlockingQueue<>(queueSize);
-		stats = new Stats(statsInterval);
+		stats = new LoggedStats(statsInterval);
 	}
 
 	public void setUpConsumer(Reporter... reporters) {

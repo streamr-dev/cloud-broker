@@ -1,10 +1,11 @@
-package com.streamr.broker.reporter;
+package com.streamr.broker.redis;
 
 import com.lambdaworks.redis.RedisClient;
 import com.lambdaworks.redis.RedisURI;
 import com.lambdaworks.redis.codec.ByteArrayCodec;
 import com.lambdaworks.redis.pubsub.api.async.RedisPubSubAsyncCommands;
 import com.streamr.broker.StreamrBinaryMessageWithKafkaMetadata;
+import com.streamr.broker.Reporter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

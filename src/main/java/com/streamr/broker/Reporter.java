@@ -1,6 +1,4 @@
-package com.streamr.broker.reporter;
-
-import com.streamr.broker.StreamrBinaryMessageWithKafkaMetadata;
+package com.streamr.broker;
 
 import java.io.Closeable;
 

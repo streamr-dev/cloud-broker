@@ -2,6 +2,7 @@ package com.streamr.broker.reporter;
 
 import com.streamr.broker.BrokerProcess;
 import com.streamr.broker.StreamrBinaryMessageWithKafkaMetadata;
+import com.streamr.broker.cassandra.CassandraReporter;
 
 import java.util.Random;
 
@@ -15,11 +16,11 @@ class CassandraReporterPerformanceTest {
 		brokerProcess.setUpConsumer(new CassandraReporter("127.0.0.1", "streamr_dev",
 			brokerProcess.getStats())
 		);
-		brokerProcess.setUpProducer((queueProducer -> () -> {
+		brokerProcess.setUpProducer(queueProducer -> () -> {
 			for (int i=0; i < NUM_OF_MESSAGES; ++i) {
 				queueProducer.accept(provideMessage(i));
 			}
-		}));
+		});
 		brokerProcess.startAll();
 	}
 

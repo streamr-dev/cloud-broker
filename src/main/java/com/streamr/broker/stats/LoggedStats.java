@@ -1,5 +1,6 @@
-package com.streamr.broker;
+package com.streamr.broker.stats;
 
+import com.streamr.broker.StreamrBinaryMessageWithKafkaMetadata;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -7,7 +8,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
 // TODO: synchronization
-public class Stats implements Runnable {
+public class LoggedStats implements Stats, Runnable {
 	private static final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	private static final Logger log = LogManager.getLogger();
 
@@ -20,17 +21,19 @@ public class Stats implements Runnable {
 	private long lastBytesWritten = 0;
 	private int lastEventsWritten = 0;
 
-	public Stats(int statsIntervalInSecs) {
+	public LoggedStats(int statsIntervalInSecs) {
 		this.statsIntervalSecs = statsIntervalInSecs;
 		log.info("Statistics reported every {} seconds", statsIntervalInSecs);
 	}
 
-	void onReadFromKafka(StreamrBinaryMessageWithKafkaMetadata msg) {
+	@Override
+	public void onReadFromKafka(StreamrBinaryMessageWithKafkaMetadata msg) {
 		eventsRead++;
 		bytesRead += msg.sizeInBytes();
 		lastTimestamp = msg.getTimestamp();
 	}
 
+	@Override
 	public void onWrittenToCassandra(StreamrBinaryMessageWithKafkaMetadata msg) {
 		eventsWritten++;
 		bytesWritten += msg.sizeInBytes();
