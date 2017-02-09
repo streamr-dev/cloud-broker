@@ -28,6 +28,9 @@ public class LoggedStats implements Stats {
 	}
 
 	@Override
+	public void stop() {}
+
+	@Override
 	public void onReadFromKafka(StreamrBinaryMessageWithKafkaMetadata msg) {
 		eventsRead++;
 		bytesRead += msg.sizeInBytes();
@@ -43,6 +46,7 @@ public class LoggedStats implements Stats {
 	@Override
 	public void onWrittenToRedis(StreamrBinaryMessageWithKafkaMetadata msg) {}
 
+	@Override
 	public void report() {
 		log.info("Last timestamp {}. Backpressure {} kB (={}-{})  [{} events (={}-{})]",
 			dateFormat.format(lastTimestamp),

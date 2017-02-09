@@ -12,18 +12,18 @@ public class BrokerProcess {
 		r -> new Thread(r, "statsLogger"));
 
 	private final BlockingQueue<StreamrBinaryMessageWithKafkaMetadata> queue;
-	private final int intervalInSec;
 	private Stats stats;
+	private int intervalInSec;
 	private Runnable consumer;
 	private Runnable producer;
 
-	public BrokerProcess(int queueSize, int intervalInSec) {
+	public BrokerProcess(int queueSize) {
 		this.queue = new ArrayBlockingQueue<>(queueSize);
-		this.intervalInSec = intervalInSec;
 	}
 
-	public void setStats(Stats stats) {
+	public void setStats(Stats stats, int intervalInSec) {
 		this.stats = stats;
+		this.intervalInSec = intervalInSec;
 	}
 
 	public void setUpProducer(Function<QueueProducer, Runnable> cb) {
@@ -60,5 +60,6 @@ public class BrokerProcess {
 		producerExecutor.shutdownNow();
 		consumerExecutor.shutdownNow();
 		statsExecutor.shutdownNow();
+		stats.stop();
 	}
 }

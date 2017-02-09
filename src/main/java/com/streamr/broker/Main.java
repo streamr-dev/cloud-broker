@@ -17,10 +17,10 @@ public class Main {
 		String cassandraHost = System.getProperty("cassandra.host", "127.0.0.1");
 		String cassandraKeySpace = System.getProperty("cassandra.keyspace", "streamr_dev");
 		int queueSize = Integer.parseInt(System.getProperty("queuesize", "2000"));
-		int statsInterval = Integer.parseInt(System.getProperty("statsinterval", "3"));
+		int statsIntervalInSec = Integer.parseInt(System.getProperty("statsinterval", "3"));
 
-		BrokerProcess brokerProcess = new BrokerProcess(queueSize, statsInterval);
-		brokerProcess.setStats(new LoggedStats());
+		BrokerProcess brokerProcess = new BrokerProcess(queueSize);
+		brokerProcess.setStats(new LoggedStats(), statsIntervalInSec);
 		brokerProcess.setUpProducer((queueProducer ->
 			new KafkaListener(zookeeper, kafkaGroup, kafkaTopic, queueProducer)));
 		brokerProcess.setUpConsumer(

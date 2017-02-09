@@ -7,5 +7,6 @@ public interface Stats {
 	void onWrittenToCassandra(StreamrBinaryMessageWithKafkaMetadata msg);
 	void onWrittenToRedis(StreamrBinaryMessageWithKafkaMetadata msg);
 	void start(int intervalInSec);
+	void stop();
 	void report();
 }

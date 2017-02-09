@@ -22,6 +22,11 @@ public class MeanStats implements Stats {
 	}
 
 	@Override
+	public void stop() {
+		log.info("Finished in {} seconds.", (System.currentTimeMillis() - startTime) / 1000);
+	}
+
+	@Override
 	public void onReadFromKafka(StreamrBinaryMessageWithKafkaMetadata msg) {
 		totalBytesRead += msg.sizeInBytes();
 		numOfEventsRead++;

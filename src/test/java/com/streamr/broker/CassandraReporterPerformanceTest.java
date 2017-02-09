@@ -9,8 +9,8 @@ class CassandraReporterPerformanceTest {
 
 	public static void main(String[] args) {
 		MeanStats meanStats = new MeanStats();
-		BrokerProcess brokerProcess = new BrokerProcess(10000, 3);
-		brokerProcess.setStats(meanStats);
+		BrokerProcess brokerProcess = new BrokerProcess(2000);
+		brokerProcess.setStats(meanStats, 3);
 		brokerProcess.setUpConsumer(new CassandraReporter("127.0.0.1", "streamr_dev"));
 		brokerProcess.setUpProducer(queueProducer -> () -> {
 			RandomStreamrBinaryMessageGenerator generator = new RandomStreamrBinaryMessageGenerator();
