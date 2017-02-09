@@ -1,6 +1,7 @@
 package com.streamr.broker.reporter;
 
 import com.datastax.driver.core.BatchStatement;
+import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Session;
 import com.streamr.broker.StreamrBinaryMessageWithKafkaMetadata;
@@ -30,32 +31,54 @@ class CassandraStatementBuilder {
 			" VALUES (?, ?, ?, ?) USING TTL ?");
 	}
 
+	BoundStatement eventInsert(StreamrBinaryMessageWithKafkaMetadata msg) {
+		if (msg.getTTL() > 0) {
+			return eventInsertTtlPs.bind(
+				msg.getStreamId(),
+				msg.getPartition(),
+				msg.getKafkaPartition(),
+				msg.getOffset(),
+				msg.getPreviousOffset(),
+				new Date(msg.getTimestamp()),
+				ByteBuffer.wrap(msg.toBytes()),
+				msg.getTTL());
+		} else {
+			return eventInsertPs.bind(
+				msg.getStreamId(),
+				msg.getPartition(),
+				msg.getKafkaPartition(),
+				msg.getOffset(),
+				msg.getPreviousOffset(),
+				new Date(msg.getTimestamp()),
+				ByteBuffer.wrap(msg.toBytes()));
+		}
+	}
+
+
+	BoundStatement tsInsert(StreamrBinaryMessageWithKafkaMetadata msg) {
+		if (msg.getTTL() > 0) {
+			return tsInsertTtlPs.bind(
+				msg.getStreamId(),
+				msg.getPartition(),
+				msg.getOffset(),
+				new Date(msg.getTimestamp()),
+				msg.getTTL()
+			);
+		} else {
+			return tsInsertPs.bind(
+				msg.getStreamId(),
+				msg.getPartition(),
+				msg.getOffset(),
+				new Date(msg.getTimestamp())
+			);
+		}
+	}
+
 	BatchStatement eventBatchInsert(List<StreamrBinaryMessageWithKafkaMetadata> messages) {
 		BatchStatement batchStatement = new BatchStatement();
-
 		for (StreamrBinaryMessageWithKafkaMetadata msg : messages) {
-			if (msg.getTTL() > 0) {
-				batchStatement.add(eventInsertTtlPs.bind(
-					msg.getStreamId(),
-					msg.getPartition(),
-					msg.getKafkaPartition(),
-					msg.getOffset(),
-					msg.getPreviousOffset(),
-					new Date(msg.getTimestamp()),
-					ByteBuffer.wrap(msg.toBytes()),
-					msg.getTTL()));
-			} else {
-				batchStatement.add(eventInsertPs.bind(
-					msg.getStreamId(),
-					msg.getPartition(),
-					msg.getKafkaPartition(),
-					msg.getOffset(),
-					msg.getPreviousOffset(),
-					new Date(msg.getTimestamp()),
-					ByteBuffer.wrap(msg.toBytes())));
-			}
+			batchStatement.add(eventInsert(msg));
 		}
-
 		return batchStatement;
 	}
 
@@ -67,22 +90,7 @@ class CassandraStatementBuilder {
 		for (StreamrBinaryMessageWithKafkaMetadata msg : messages) {
 			if (msg.getTimestamp() - lastWrittenTimestamp > 1000) {
 				lastWrittenTimestamp = msg.getTimestamp();
-				if (msg.getTTL() > 0) {
-					batchStatement.add(tsInsertTtlPs.bind(
-						msg.getStreamId(),
-						msg.getPartition(),
-						msg.getOffset(),
-						new Date(msg.getTimestamp()),
-						msg.getTTL()
-					));
-				} else {
-					batchStatement.add(tsInsertPs.bind(
-						msg.getStreamId(),
-						msg.getPartition(),
-						msg.getOffset(),
-						new Date(msg.getTimestamp())
-					));
-				}
+				tsInsert(msg);
 			}
 		}
 
