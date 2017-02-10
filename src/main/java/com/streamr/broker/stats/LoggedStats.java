@@ -13,11 +13,14 @@ public class LoggedStats implements Stats {
 	private static final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
 	private int intervalInSec = -1;
+
 	private long lastTimestamp = 0;
 	private long totalBytesRead = 0;
 	private long totalBytesWritten = 0;
 	private int totalEventsRead = 0;
 	private int totalEventsWritten = 0;
+
+	private long lastBytesRead = 0;
 	private long lastBytesWritten = 0;
 	private int lastEventsWritten = 0;
 
@@ -48,7 +51,7 @@ public class LoggedStats implements Stats {
 
 	@Override
 	public void report() {
-		if (lastEventsWritten == totalEventsWritten) {
+		if (lastBytesRead == totalBytesRead) {
 			log.info("No new data.");
 		} else {
 			String lastDate = dateFormat.format(lastTimestamp);
@@ -63,6 +66,7 @@ public class LoggedStats implements Stats {
 			double kbReadPerSec = kbReadSinceLastReport / intervalInSec;
 			int eventReadPerSec = eventsReadSinceLastReport / intervalInSec;
 
+			lastBytesRead = totalBytesRead;
 			lastBytesWritten = totalBytesWritten;
 			lastEventsWritten = totalEventsWritten;
 

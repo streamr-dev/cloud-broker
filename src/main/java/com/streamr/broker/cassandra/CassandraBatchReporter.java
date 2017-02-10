@@ -3,9 +3,9 @@ package com.streamr.broker.cassandra;
 import com.datastax.driver.core.*;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
-import com.streamr.broker.stats.Stats;
-import com.streamr.broker.StreamrBinaryMessageWithKafkaMetadata;
 import com.streamr.broker.Reporter;
+import com.streamr.broker.StreamrBinaryMessageWithKafkaMetadata;
+import com.streamr.broker.stats.Stats;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -13,10 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TimerTask;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 public class CassandraBatchReporter implements Reporter {
 	private static final Logger log = LogManager.getLogger();
@@ -28,13 +25,15 @@ public class CassandraBatchReporter implements Reporter {
 	private final ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
 	private final Session session;
 	private final CassandraStatementBuilder cassandraStatementBuilder;
+	private final Semaphore semaphore;
 	private Stats stats;
 
 	public CassandraBatchReporter(String cassandraHost, String cassandraKeySpace) {
 		Cluster cluster = Cluster.builder().addContactPoint(cassandraHost).build();
 		session = cluster.connect(cassandraKeySpace);
 		cassandraStatementBuilder = new CassandraStatementBuilder(session);
-		log.info("Cassandra session created for {} on key space '{}'", cluster.getMetadata().getAllHosts(),
+		semaphore = new Semaphore(cluster.getConfiguration().getPoolingOptions().getMaxQueueSize(), true);
+		log.info("Cassandra session created for {} on keyspace '{}'", cluster.getMetadata().getAllHosts(),
 			session.getLoggedKeyspace());
 	}
 
@@ -70,6 +69,7 @@ public class CassandraBatchReporter implements Reporter {
 		private final FutureCallback<List<ResultSet>> statsCallback = new FutureCallback<List<ResultSet>>() {
 			@Override
 			public void onSuccess(List<ResultSet> result) {
+				semaphore.release();
 				for (StreamrBinaryMessageWithKafkaMetadata msg : messages) {
 					stats.onWrittenToCassandra(msg);
 				}
@@ -92,6 +92,7 @@ public class CassandraBatchReporter implements Reporter {
 		@Override
 		public void run() {
 			batches.remove(key);
+			semaphore.acquireUninterruptibly();
 			BatchStatement eventPs = cassandraStatementBuilder.eventBatchInsert(messages);
 			BatchStatement tsPs = cassandraStatementBuilder.tsBatchInsert(messages);
 			ResultSetFuture f1 = session.executeAsync(eventPs);

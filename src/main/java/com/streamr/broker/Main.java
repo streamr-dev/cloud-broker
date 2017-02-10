@@ -1,11 +1,11 @@
 package com.streamr.broker;
 
+import com.streamr.broker.cassandra.CassandraBatchReporter;
 import com.streamr.broker.kafka.KafkaListener;
-import com.streamr.broker.cassandra.CassandraReporter;
 import com.streamr.broker.redis.RedisReporter;
 import com.streamr.broker.stats.LoggedStats;
 
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutionException;
 
 public class Main {
 	public static void main(String[] args) throws ExecutionException, InterruptedException {
@@ -25,7 +25,7 @@ public class Main {
 			new KafkaListener(zookeeper, kafkaGroup, kafkaTopic, queueProducer)));
 		brokerProcess.setUpConsumer(
 			new RedisReporter(redisHost, redisPassword),
-			new CassandraReporter(cassandraHost, cassandraKeySpace)
+			new CassandraBatchReporter(cassandraHost, cassandraKeySpace)
 		);
 		brokerProcess.startAll();
 	}
