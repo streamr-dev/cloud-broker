@@ -18,7 +18,7 @@ class RandomDataProducer {
 
 	StreamrBinaryMessageWithKafkaMetadata provideMessage(long offset) {
 		return new StreamrBinaryMessageWithKafkaMetadata(STREAM_IDS[random2.nextInt(STREAM_IDS.length)],
-			1,
+			0,
 			System.currentTimeMillis(),
 			1000,
 			StreamrBinaryMessageWithKafkaMetadata.CONTENT_TYPE_STRING,
@@ -45,8 +45,12 @@ class RandomDataProducer {
 			for (int i = 0; i < PerformanceTestConfiguration.NUM_OF_MESSAGES; ++i) {
 				queueProducer.accept(provideMessage(i));
 			}
-			log.info("Generated a total of {} MB of random data.", totalBytes / (1000*1000));
+			logTotalByesGenerated();
 			brokerProcess.shutdown();
 		};
+	}
+
+	void logTotalByesGenerated() {
+		log.info("Generated a total of {} MB of random data.", totalBytes / (1000*1000));
 	}
 }
