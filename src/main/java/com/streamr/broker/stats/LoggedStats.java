@@ -48,30 +48,32 @@ public class LoggedStats implements Stats {
 
 	@Override
 	public void report() {
-		String lastDate = dateFormat.format(lastTimestamp);
-		double kbPackPresure = (totalBytesRead - totalBytesWritten) / 1000.0;
-		double kbReadSinceLastReport = (totalBytesRead - lastBytesWritten) / 1000.0;
-		double kbWrittenSinceLastReport = (totalBytesWritten - lastBytesWritten) / 1000.0;
-		long eventBackPressure = totalEventsRead - totalEventsWritten;
-		int eventsReadSinceLastReport = totalEventsRead - lastEventsWritten;
-		int eventsWrittenSinceLastReport = totalEventsWritten - lastEventsWritten;
-		double kbWritePerSec = kbWrittenSinceLastReport / intervalInSec;
-		int eventWritePerSec = eventsWrittenSinceLastReport / intervalInSec;
-		double kbReadPerSec = kbReadSinceLastReport / intervalInSec;
-		int eventReadPerSec = eventsReadSinceLastReport / intervalInSec;
+		if (lastEventsWritten == totalEventsWritten) {
+			log.info("No new data.");
+		} else {
+			String lastDate = dateFormat.format(lastTimestamp);
+			double kbPackPresure = (totalBytesRead - totalBytesWritten) / 1000.0;
+			double kbReadSinceLastReport = (totalBytesRead - lastBytesWritten) / 1000.0;
+			double kbWrittenSinceLastReport = (totalBytesWritten - lastBytesWritten) / 1000.0;
+			long eventBackPressure = totalEventsRead - totalEventsWritten;
+			int eventsReadSinceLastReport = totalEventsRead - lastEventsWritten;
+			int eventsWrittenSinceLastReport = totalEventsWritten - lastEventsWritten;
+			double kbWritePerSec = kbWrittenSinceLastReport / intervalInSec;
+			int eventWritePerSec = eventsWrittenSinceLastReport / intervalInSec;
+			double kbReadPerSec = kbReadSinceLastReport / intervalInSec;
+			int eventReadPerSec = eventsReadSinceLastReport / intervalInSec;
 
+			lastBytesWritten = totalBytesWritten;
+			lastEventsWritten = totalEventsWritten;
 
+			String template = "\n" +
+				"\tLast timestamp {}\n" +
+				"\tBackpressure {} kB / {} events\n" +
+				"\tWrite throughput {} kB/s or {} event/s\n" +
+				"\tRead throughput {} kB/s or {} event/s";
 
-		lastBytesWritten = totalBytesWritten;
-		lastEventsWritten = totalEventsWritten;
-
-		String template = "\n" +
-			"\tLast timestamp {}\n" +
-			"\tBackpressure {} kB / {} events\n" +
-			"\tWrite throughput {} kB/s or {} event/s\n" +
-			"\tRead throughput {} kB/S or {} event/s";
-
-		log.info(template, lastDate, kbPackPresure, eventBackPressure, kbWritePerSec, eventWritePerSec, kbReadPerSec,
-			eventReadPerSec);
+			log.info(template, lastDate, kbPackPresure, eventBackPressure, kbWritePerSec, eventWritePerSec,
+				kbReadPerSec, eventReadPerSec);
+		}
 	}
 }
