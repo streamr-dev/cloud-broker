@@ -12,7 +12,7 @@ public class KafkaSpammer {
 	private final KafkaProducer<String, byte[]> producer;
 	private final String dataTopic;
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws InterruptedException {
 		KafkaSpammer kafkaSpammer = new KafkaSpammer("127.0.0.1:9092", "data-dev");
 		Random random = new Random();
 
@@ -24,6 +24,7 @@ public class KafkaSpammer {
 			if (++count % 10000 == 0) {
 				System.out.println(count);
 			}
+			Thread.sleep(10);
 		}
 	}
 

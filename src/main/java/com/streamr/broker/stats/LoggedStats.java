@@ -14,10 +14,10 @@ public class LoggedStats implements Stats {
 
 	private int intervalInSec = -1;
 	private long lastTimestamp = 0;
-	private long bytesRead = 0;
-	private long bytesWritten = 0;
-	private int eventsRead = 0;
-	private int eventsWritten = 0;
+	private long totalBytesRead = 0;
+	private long totalBytesWritten = 0;
+	private int totalEventsRead = 0;
+	private int totalEventsWritten = 0;
 	private long lastBytesWritten = 0;
 	private int lastEventsWritten = 0;
 
@@ -32,15 +32,15 @@ public class LoggedStats implements Stats {
 
 	@Override
 	public void onReadFromKafka(StreamrBinaryMessageWithKafkaMetadata msg) {
-		eventsRead++;
-		bytesRead += msg.sizeInBytes();
+		totalEventsRead++;
+		totalBytesRead += msg.sizeInBytes();
 		lastTimestamp = msg.getTimestamp();
 	}
 
 	@Override
 	public void onWrittenToCassandra(StreamrBinaryMessageWithKafkaMetadata msg) {
-		eventsWritten++;
-		bytesWritten += msg.sizeInBytes();
+		totalEventsWritten++;
+		totalBytesWritten += msg.sizeInBytes();
 	}
 
 	@Override
@@ -48,12 +48,30 @@ public class LoggedStats implements Stats {
 
 	@Override
 	public void report() {
-		log.info("Last timestamp {}. Backpressure {} kB (={}-{})  [{} events (={}-{})]",
-			dateFormat.format(lastTimestamp),
-			(bytesRead - bytesWritten) / 1000.0, (bytesRead - lastBytesWritten) / 1000.0, (bytesWritten - lastBytesWritten) / 1000.0,
-			eventsRead - eventsWritten, eventsRead - lastEventsWritten,eventsWritten - lastEventsWritten);
-		log.info("Write throughput {} kB/s ({} event/s)", ((bytesWritten - lastBytesWritten) / 1000.0) / intervalInSec, (eventsWritten - lastEventsWritten) / intervalInSec);
-		lastBytesWritten = bytesWritten;
-		lastEventsWritten = eventsWritten;
+		String lastDate = dateFormat.format(lastTimestamp);
+		double kbPackPresure = (totalBytesRead - totalBytesWritten) / 1000.0;
+		double kbReadSinceLastReport = (totalBytesRead - lastBytesWritten) / 1000.0;
+		double kbWrittenSinceLastReport = (totalBytesWritten - lastBytesWritten) / 1000.0;
+		long eventBackPressure = totalEventsRead - totalEventsWritten;
+		int eventsReadSinceLastReport = totalEventsRead - lastEventsWritten;
+		int eventsWrittenSinceLastReport = totalEventsWritten - lastEventsWritten;
+		double kbWritePerSec = kbWrittenSinceLastReport / intervalInSec;
+		int eventWritePerSec = eventsWrittenSinceLastReport / intervalInSec;
+		double kbReadPerSec = kbReadSinceLastReport / intervalInSec;
+		int eventReadPerSec = eventsReadSinceLastReport / intervalInSec;
+
+
+
+		lastBytesWritten = totalBytesWritten;
+		lastEventsWritten = totalEventsWritten;
+
+		String template = "\n" +
+			"\tLast timestamp {}\n" +
+			"\tBackpressure {} kB / {} events\n" +
+			"\tWrite throughput {} kB/s or {} event/s\n" +
+			"\tRead throughput {} kB/S or {} event/s";
+
+		log.info(template, lastDate, kbPackPresure, eventBackPressure, kbWritePerSec, eventWritePerSec, kbReadPerSec,
+			eventReadPerSec);
 	}
 }

@@ -16,8 +16,8 @@ public class Main {
 		String redisPassword = System.getProperty("redis.password", "kakka");
 		String cassandraHost = System.getProperty("cassandra.host", "127.0.0.1");
 		String cassandraKeySpace = System.getProperty("cassandra.keyspace", "streamr_dev");
-		int queueSize = Integer.parseInt(System.getProperty("queuesize", "2000"));
-		int statsIntervalInSec = Integer.parseInt(System.getProperty("statsinterval", "3"));
+		int queueSize = Integer.parseInt(System.getProperty("queuesize", "200"));
+		int statsIntervalInSec = Integer.parseInt(System.getProperty("statsinterval", "30"));
 
 		BrokerProcess brokerProcess = new BrokerProcess(queueSize);
 		brokerProcess.setStats(new LoggedStats(), statsIntervalInSec);
