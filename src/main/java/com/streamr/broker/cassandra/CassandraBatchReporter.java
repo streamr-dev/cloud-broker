@@ -19,7 +19,7 @@ public class CassandraBatchReporter implements Reporter {
 	private static final Logger log = LogManager.getLogger();
 
 	private static final int COMMIT_INTERVAL_MS = 1000;
-	private static final int MAX_BATCH_SIZE = 500;
+	private static final int DO_NOT_GROW_BATCH_AFTER_BYTES = 5000;
 
 	private final Map<String, Batch> batches = new HashMap<>();
 	private final ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
@@ -47,7 +47,7 @@ public class CassandraBatchReporter implements Reporter {
 		String key = formKey(msg);
 		synchronized (batches) {
 			Batch batch = batches.get(key);
-			if (batch == null) {
+			if (batch == null || batch.isFull()) {
 				batch = new Batch(key);
 				batches.put(key, batch);
 				scheduledExecutor.schedule(batch, COMMIT_INTERVAL_MS, TimeUnit.MILLISECONDS);
@@ -67,6 +67,7 @@ public class CassandraBatchReporter implements Reporter {
 
 	private class Batch extends TimerTask {
 		private final String key;
+		private long totalSizeInBytes = 0;
 		private final List<StreamrBinaryMessageWithKafkaMetadata> messages = new ArrayList<>();
 		private final FutureCallback<List<ResultSet>> statsCallback = new FutureCallback<List<ResultSet>>() {
 			@Override
@@ -88,14 +89,19 @@ public class CassandraBatchReporter implements Reporter {
 			this.key = key;
 		}
 
+		boolean isFull() {
+			return totalSizeInBytes >= DO_NOT_GROW_BATCH_AFTER_BYTES;
+		}
+
 		void add(StreamrBinaryMessageWithKafkaMetadata msg) {
+			totalSizeInBytes += msg.sizeInBytes();
 			messages.add(msg);
 		}
 
 		@Override
 		public void run() {
 			synchronized (batches) {
-				batches.remove(key);
+				batches.remove(key, this);
 			}
 			semaphore.acquireUninterruptibly();
 			BatchStatement eventPs = cassandraStatementBuilder.eventBatchInsert(messages);
