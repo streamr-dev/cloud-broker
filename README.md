@@ -9,6 +9,7 @@ How different ways of pushing 20.9 Gb of data performs.
 `CassandraReporter.java` with Queue size 2000 and 1 stream.
 
 | #events  | size per event | total time (sec) | write (kB/s) | events/s |
+|----------|:---------------|------------------|--------------|----------|
 | 2500     |  8192 kB       | 95               | 219995       | 26.2     |
 | 5000     |  4096 kB       | 101              | 205874       | 49.1     |
 | 10000    |  2048 kB       | 97               | 215595       | 102.8    |
