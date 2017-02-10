@@ -1,6 +1,7 @@
 package com.streamr.broker;
 
 import com.streamr.broker.cassandra.CassandraBatchReporter;
+import com.streamr.broker.cassandra.CassandraReporter;
 import com.streamr.broker.kafka.KafkaListener;
 import com.streamr.broker.redis.RedisReporter;
 import com.streamr.broker.stats.LoggedStats;
