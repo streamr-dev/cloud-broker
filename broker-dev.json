@@ -2,6 +2,7 @@
   "apps": [{
     "name": "broker",
     "args": [
+      "-jar build/libs/broker-*-all.jar",
       "-Dkafka.server=dev.streamr:9093",
       "-Dkafka.group=data-dev",
       "-Dkafka.topic=data-dev",
@@ -9,8 +10,7 @@
       "-Dredis.password=AFuPxeVMwBKHV5Hm5SK3PkRZA",
       "-Dcassandra.host=dev.streamr",
       "-Dcassandra.keyspace=streamr_dev",
-      "-Dstats.interval=60",
-      "-jar build/libs/broker-*-all.jar"
+      "-Dstats.interval=60"
     ],
     "script": "/usr/bin/java",
     "node_args": [],
