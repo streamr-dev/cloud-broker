@@ -18,7 +18,6 @@ public class RedisReporter implements Reporter {
 
 	private final RedisClient client;
 	private final RedisPubSubAsyncCommands<byte[], byte[]> connection;
-	private final Semaphore semaphore = new Semaphore(256);
 	private Stats stats;
 
 	public RedisReporter(String host, String password) {
@@ -35,11 +34,8 @@ public class RedisReporter implements Reporter {
 
 	@Override
 	public void report(StreamrBinaryMessageWithKafkaMetadata msg) {
-		semaphore.acquireUninterruptibly();
-		connection.publish(formKey(msg), msg.toBytesWithKafkaMetadata()).thenRunAsync(() -> {
-			stats.onWrittenToRedis(msg);
-			semaphore.release();
-		});
+		connection.publish(formKey(msg), msg.toBytesWithKafkaMetadata())
+			.thenRunAsync(() -> stats.onWrittenToRedis(msg));
 	}
 
 	@Override

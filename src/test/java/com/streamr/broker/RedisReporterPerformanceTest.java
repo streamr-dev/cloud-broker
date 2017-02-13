@@ -4,6 +4,7 @@ import com.streamr.broker.redis.RedisReporter;
 
 /**
  #semaphores    time    throughput       throughput     memory use                  cpu use
+ without        28s     235673 kb/s      63481 #/s      962MB -> 1400MB             30%
  16      		44s     176000 kb/s      44600 #/s      268MB -> 200MB -> 145MB     25%
  64      		35s     215000 kb/s      55000 #/s      523MB -> 273MB -> 128MB     25%
  256     		30s     258000 kb/s      65000 #/s      669MB -> 400MB -> 100MB     28%
