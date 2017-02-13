@@ -58,6 +58,7 @@ public class CassandraBatchReporter implements Reporter {
 
 	@Override
 	public void close() {
+		scheduledExecutor.shutdownNow();
 		session.getCluster().close();
 	}
 
