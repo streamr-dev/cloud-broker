@@ -1,7 +1,6 @@
 package com.streamr.broker;
 
 import com.streamr.broker.cassandra.CassandraBatchReporter;
-import com.streamr.broker.cassandra.CassandraReporter;
 
 import static com.streamr.broker.PerformanceTestConfiguration.QUEUE_SIZE;
 

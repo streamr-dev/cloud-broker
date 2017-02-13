@@ -19,7 +19,7 @@ public class CassandraBatchReporter implements Reporter {
 	private static final Logger log = LogManager.getLogger();
 
 	private static final int COMMIT_INTERVAL_MS = 1000;
-	private static final int DO_NOT_GROW_BATCH_AFTER_BYTES = 5000;
+	private static final int DO_NOT_GROW_BATCH_AFTER_BYTES = 1024 * 1024 * 2; // optimized
 
 	private final Map<String, Batch> batches = new HashMap<>();
 	private final ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
@@ -103,9 +103,9 @@ public class CassandraBatchReporter implements Reporter {
 			synchronized (batches) {
 				batches.remove(key, this);
 			}
-			semaphore.acquireUninterruptibly();
 			BatchStatement eventPs = cassandraStatementBuilder.eventBatchInsert(messages);
 			BatchStatement tsPs = cassandraStatementBuilder.tsBatchInsert(messages);
+			semaphore.acquireUninterruptibly();
 			ResultSetFuture f1 = session.executeAsync(eventPs);
 			ResultSetFuture f2 = session.executeAsync(tsPs);
 			Futures.addCallback(Futures.allAsList(f1, f2), statsCallback);
