@@ -1,7 +1,6 @@
 {
   "apps": [{
-    "name": "Broker",
-    "cwd": "/home/root/broker",
+    "name": "broker",
     "args": [
       "-Dkafka.server=dev.streamr:9093",
       "-Dkafka.group=data-dev",
