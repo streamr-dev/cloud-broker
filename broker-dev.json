@@ -10,8 +10,7 @@
       "-Dcassandra.host=dev.streamr",
       "-Dcassandra.keyspace=streamr_dev",
       "-Dstats.interval=60",
-      "-jar ",
-      "build/libs/broker-*-all.jar"
+      "-jar build/libs/broker-*-all.jar"
     ],
     "script": "/usr/bin/java",
     "node_args": [],
