@@ -20,19 +20,22 @@ public class CassandraBatchReporter implements Reporter {
 
 	private static final int COMMIT_INTERVAL_MS = 1000;
 	private static final int DO_NOT_GROW_BATCH_AFTER_BYTES = 1024 * 1024 * 2; // optimized
+	private static final int MAX_MESSAGES_IN_MEMORY = 65536;
 
 	private final Map<String, Batch> batches = new HashMap<>();
 	private final ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
 	private final Session session;
 	private final CassandraStatementBuilder cassandraStatementBuilder;
-	private final Semaphore semaphore;
+	private final Semaphore numOfMessagesSemaphore; // Ensure heap doesn't run out from too many messages
+	private final Semaphore cassandraSemaphore;     // Ensure Cassandra doesn't explode from too many async queries
 	private Stats stats;
 
 	public CassandraBatchReporter(String cassandraHost, String cassandraKeySpace) {
 		Cluster cluster = Cluster.builder().addContactPoint(cassandraHost).build();
 		session = cluster.connect(cassandraKeySpace);
 		cassandraStatementBuilder = new CassandraStatementBuilder(session);
-		semaphore = new Semaphore(cluster.getConfiguration().getPoolingOptions().getMaxQueueSize(), true);
+		numOfMessagesSemaphore = new Semaphore(MAX_MESSAGES_IN_MEMORY);
+		cassandraSemaphore = new Semaphore(cluster.getConfiguration().getPoolingOptions().getMaxQueueSize(), true);
 		log.info("Cassandra session created for {} on keyspace '{}'", cluster.getMetadata().getAllHosts(),
 			session.getLoggedKeyspace());
 	}
@@ -44,6 +47,7 @@ public class CassandraBatchReporter implements Reporter {
 
 	@Override
 	public void report(StreamrBinaryMessageWithKafkaMetadata msg) {
+		numOfMessagesSemaphore.acquireUninterruptibly();
 		String key = formKey(msg);
 		synchronized (batches) {
 			Batch batch = batches.get(key);
@@ -73,7 +77,8 @@ public class CassandraBatchReporter implements Reporter {
 		private final FutureCallback<List<ResultSet>> statsCallback = new FutureCallback<List<ResultSet>>() {
 			@Override
 			public void onSuccess(List<ResultSet> result) {
-				semaphore.release();
+				numOfMessagesSemaphore.release(messages.size());
+				cassandraSemaphore.release();
 				for (StreamrBinaryMessageWithKafkaMetadata msg : messages) {
 					stats.onWrittenToCassandra(msg);
 				}
@@ -81,8 +86,19 @@ public class CassandraBatchReporter implements Reporter {
 
 			@Override
 			public void onFailure(Throwable t) {
-				semaphore.release();
-				throw new RuntimeException(t);
+				cassandraSemaphore.release();
+				StreamrBinaryMessageWithKafkaMetadata firstMessage = messages.get(0);
+				StreamrBinaryMessageWithKafkaMetadata lastMessage = messages.get(messages.size() - 1);
+				log.error("Failed to write to stream {}. Offsets {} - {}. Total bytes {}. Exception: {}.",
+					firstMessage.getStreamId(),
+					firstMessage.getOffset(),
+					lastMessage.getOffset(),
+					totalSizeInBytes,
+					t
+				);
+				log.info("Rescheduling stream {} offsets {} - {}",
+					firstMessage.getStreamId(), firstMessage.getOffset(), lastMessage.getOffset());
+				scheduledExecutor.schedule(Batch.this, COMMIT_INTERVAL_MS, TimeUnit.MILLISECONDS);
 			}
 		};
 
@@ -106,7 +122,7 @@ public class CassandraBatchReporter implements Reporter {
 			}
 			BatchStatement eventPs = cassandraStatementBuilder.eventBatchInsert(messages);
 			BatchStatement tsPs = cassandraStatementBuilder.tsBatchInsert(messages);
-			semaphore.acquireUninterruptibly();
+			cassandraSemaphore.acquireUninterruptibly();
 			ResultSetFuture f1 = session.executeAsync(eventPs);
 			ResultSetFuture f2 = session.executeAsync(tsPs);
 			Futures.addCallback(Futures.allAsList(f1, f2), statsCallback);
