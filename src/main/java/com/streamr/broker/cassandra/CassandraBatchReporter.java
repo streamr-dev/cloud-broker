@@ -1,7 +1,6 @@
 package com.streamr.broker.cassandra;
 
 import com.datastax.driver.core.*;
-import com.datastax.driver.core.exceptions.DriverException;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.streamr.broker.Reporter;
@@ -19,7 +18,8 @@ import java.util.concurrent.TimeUnit;
 public class CassandraBatchReporter implements Reporter {
 	private static final Logger log = LogManager.getLogger();
 
-	private static final int COMMIT_INTERVAL_MS = 1000;
+	private static final int BASE_COMMIT_INTERVAL_IN_MS = 1000;
+	private static final int MAX_FAIL_MULTIPLIER = 64;
 	private static final int DO_NOT_GROW_BATCH_AFTER_BYTES = 1024 * 1024 * 2; // optimized
 	private static final int MAX_MESSAGES_IN_MEMORY = 65536;
 
@@ -30,6 +30,7 @@ public class CassandraBatchReporter implements Reporter {
 	private final Semaphore numOfMessagesSemaphore; // Ensure heap doesn't run out from too many messages
 	private final Semaphore cassandraSemaphore;     // Ensure Cassandra doesn't explode from too many async queries
 	private Stats stats;
+	private int failMultiplier = 1;
 
 	public CassandraBatchReporter(String cassandraHost, String cassandraKeySpace) {
 		Cluster cluster = null;
@@ -44,7 +45,7 @@ public class CassandraBatchReporter implements Reporter {
 		} catch (Exception e) {
 			scheduledExecutor.shutdownNow();
 			if (cluster != null) {
-				cluster.close();
+				cluster.close(); // => session.close()
 			}
 			throw e;
 		}
@@ -64,7 +65,7 @@ public class CassandraBatchReporter implements Reporter {
 			if (batch == null || batch.isFull()) {
 				batch = new Batch(key);
 				batches.put(key, batch);
-				scheduledExecutor.schedule(batch, COMMIT_INTERVAL_MS, TimeUnit.MILLISECONDS);
+				scheduledExecutor.schedule(batch, getCommitIntervalInMs(), TimeUnit.MILLISECONDS);
 			}
 			batch.add(msg);
 		}
@@ -73,11 +74,22 @@ public class CassandraBatchReporter implements Reporter {
 	@Override
 	public void close() {
 		scheduledExecutor.shutdownNow();
-		session.getCluster().close();
+		session.getCluster().close(); // => session.close()
 	}
 
 	private static String formKey(StreamrBinaryMessageWithKafkaMetadata msg) {
 		return msg.getStreamId() + "|" + msg.getPartition();
+	}
+
+	private int getCommitIntervalInMs() {
+		return BASE_COMMIT_INTERVAL_IN_MS * failMultiplier;
+	}
+
+	private void growFailMultiplier() {
+		int candidate = failMultiplier * 2;
+		if (candidate <= MAX_FAIL_MULTIPLIER) {
+			failMultiplier = candidate;
+		}
 	}
 
 	private class Batch extends TimerTask {
@@ -87,6 +99,7 @@ public class CassandraBatchReporter implements Reporter {
 		private final FutureCallback<List<ResultSet>> statsCallback = new FutureCallback<List<ResultSet>>() {
 			@Override
 			public void onSuccess(List<ResultSet> result) {
+				failMultiplier = 1;
 				numOfMessagesSemaphore.release(messages.size());
 				cassandraSemaphore.release();
 				for (StreamrBinaryMessageWithKafkaMetadata msg : messages) {
@@ -97,18 +110,20 @@ public class CassandraBatchReporter implements Reporter {
 			@Override
 			public void onFailure(Throwable t) {
 				cassandraSemaphore.release();
+				growFailMultiplier();
+				long commitIntervalInMs = getCommitIntervalInMs();
 				StreamrBinaryMessageWithKafkaMetadata firstMessage = messages.get(0);
 				StreamrBinaryMessageWithKafkaMetadata lastMessage = messages.get(messages.size() - 1);
-				log.error("Failed to write to stream {}. Offsets {} - {}. Total bytes {}. Exception: {}.",
+				log.error("Failed to write to '{}'. Offsets {} - {}. Total bytes {}. Exception: {}." +
+						"Re-scheduled to {} ms.",
 					firstMessage.getStreamId(),
 					firstMessage.getOffset(),
 					lastMessage.getOffset(),
 					totalSizeInBytes,
-					t
+					t,
+					commitIntervalInMs
 				);
-				log.info("Rescheduling stream {} offsets {} - {}",
-					firstMessage.getStreamId(), firstMessage.getOffset(), lastMessage.getOffset());
-				scheduledExecutor.schedule(Batch.this, COMMIT_INTERVAL_MS, TimeUnit.MILLISECONDS);
+				scheduledExecutor.schedule(Batch.this, commitIntervalInMs, TimeUnit.MILLISECONDS);
 			}
 		};
 
