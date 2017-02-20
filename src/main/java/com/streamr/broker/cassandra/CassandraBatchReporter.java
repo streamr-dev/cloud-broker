@@ -1,6 +1,7 @@
 package com.streamr.broker.cassandra;
 
 import com.datastax.driver.core.*;
+import com.datastax.driver.core.exceptions.DriverException;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.streamr.broker.Reporter;
@@ -31,13 +32,22 @@ public class CassandraBatchReporter implements Reporter {
 	private Stats stats;
 
 	public CassandraBatchReporter(String cassandraHost, String cassandraKeySpace) {
-		Cluster cluster = Cluster.builder().addContactPoint(cassandraHost).build();
-		session = cluster.connect(cassandraKeySpace);
-		cassandraStatementBuilder = new CassandraStatementBuilder(session);
-		numOfMessagesSemaphore = new Semaphore(MAX_MESSAGES_IN_MEMORY);
-		cassandraSemaphore = new Semaphore(cluster.getConfiguration().getPoolingOptions().getMaxQueueSize(), true);
-		log.info("Cassandra session created for {} on keyspace '{}'", cluster.getMetadata().getAllHosts(),
-			session.getLoggedKeyspace());
+		Cluster cluster = null;
+		try {
+			cluster = Cluster.builder().addContactPoint(cassandraHost).build();
+			session = cluster.connect(cassandraKeySpace);
+			cassandraSemaphore = new Semaphore(cluster.getConfiguration().getPoolingOptions().getMaxQueueSize(), true);
+			cassandraStatementBuilder = new CassandraStatementBuilder(session);
+			numOfMessagesSemaphore = new Semaphore(MAX_MESSAGES_IN_MEMORY);
+			log.info("Cassandra session created for {} on keyspace '{}'", cluster.getMetadata().getAllHosts(),
+				session.getLoggedKeyspace());
+		} catch (Exception e) {
+			scheduledExecutor.shutdownNow();
+			if (cluster != null) {
+				cluster.close();
+			}
+			throw e;
+		}
 	}
 
 	@Override
