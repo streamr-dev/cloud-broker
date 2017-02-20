@@ -90,7 +90,7 @@ class CassandraStatementBuilder {
 		for (StreamrBinaryMessageWithKafkaMetadata msg : messages) {
 			if (msg.getTimestamp() - lastWrittenTimestamp > 1000) {
 				lastWrittenTimestamp = msg.getTimestamp();
-				tsInsert(msg);
+				batchStatement.add(tsInsert(msg));
 			}
 		}
 
