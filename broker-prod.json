@@ -1,0 +1,23 @@
+{
+  "apps": [{
+    "name": "broker",
+    "args": [
+      "-Dkafka.server=kafka1:9092",
+      "-Dkafka.group=data-prod",
+      "-Dkafka.topic=data-prod",
+      "-Dredis.host=redis1",
+      "-Dredis.password=AFuPxeVMwBKHV5Hm5SK3PkRZA",
+      "-Dcassandra.host=cassandra1",
+      "-Dcassandra.keyspace=streamr_prod",
+      "-Dstats.interval=60",
+      "-jar",
+      "build/libs/broker-1.0-SNAPSHOT-all.jar"
+    ],
+    "script": "/usr/bin/java",
+    "node_args": [],
+    "log_date_format": "YYYY-MM-DD HH:mm",
+    "exec_interpreter": "none",
+    "exec_mode": "fork"
+  }
+  ]
+}
