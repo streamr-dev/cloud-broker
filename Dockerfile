@@ -22,7 +22,7 @@ CMD java \
     -Dkafka.group=${KAFKA_GROUP} \
     -Dkafka.topic=${KAFKA_TOPIC} \
     -Dredis.host=${REDIS_HOST} \
-    -Dredis.password=${REDIS_PASSWORD}, \
+    -Dredis.password=${REDIS_PASSWORD} \
     -Dcassandra.host=${CASSANDRA_HOST} \
     -Dcassandra.keyspace=${CASSANDRA_KEYSPACE} \
     -jar broker.war
