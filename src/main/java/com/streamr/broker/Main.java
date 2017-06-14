@@ -13,7 +13,7 @@ public class Main {
 		String kafkaGroup = System.getProperty("kafka.group", "data-dev");
 		String kafkaTopic = System.getProperty("kafka.topic", "data-dev");
 		String redisHost = System.getProperty("redis.host", "127.0.0.1");
-		String redisPassword = System.getProperty("redis.password", "kakka");
+		String redisPassword = System.getProperty("redis.password", "");
 		String cassandraHost = System.getProperty("cassandra.host", "127.0.0.1");
 		String cassandraKeySpace = System.getProperty("cassandra.keyspace", "streamr_dev");
 		int queueSize = Integer.parseInt(System.getProperty("queuesize", "200"));
