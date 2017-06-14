@@ -2,10 +2,20 @@
 # https://hackernoon.com/crafting-perfect-java-docker-build-flow-740f71638d63
 
 # Use official OpenJDK 8 runtime as base image
-FROM openjdk:8-jre-alpine
+FROM openjdk:8-jdk-alpine
 
-# Copy built "fat" JAR to container
-COPY build/libs/broker-*-all.jar broker.war
+# Copy source code
+WORKDIR /broker-src
+COPY . /broker-src
+
+# Build "fat" JAR
+RUN apk update && \
+    apk --no-cache add bash && \
+    ./gradlew shadowJar && \
+    mv /broker-src/build/libs/broker-*-all.jar ./broker.jar && \
+    apk del bash && \
+    rm -rf /.gradle && \
+    rm -rf /var/cache/apk/*
 
 # Default environment variables
 ENV KAFKA_PORT 9092
@@ -23,4 +33,4 @@ CMD java \
     -Dredis.password=${REDIS_PASSWORD} \
     -Dcassandra.host=cassandra \
     -Dcassandra.keyspace=${CASSANDRA_KEYSPACE} \
-    -jar broker.war
+    -jar broker.jar
