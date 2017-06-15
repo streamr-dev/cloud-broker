@@ -12,9 +12,10 @@ COPY . /broker-src
 RUN apk update && \
     apk --no-cache add bash && \
     ./gradlew shadowJar && \
-    mv /broker-src/build/libs/broker-*-all.jar ./broker.jar && \
+    mv /broker-src/build/libs/broker-*-all.jar /broker.jar && \
     apk del bash && \
-    rm -rf /.gradle && \
+    rm -rf /broker-src/build && \
+    rm -rf /root/.gradle && \
     rm -rf /var/cache/apk/*
 
 # Default environment variables
@@ -33,4 +34,4 @@ CMD java \
     -Dredis.password=${REDIS_PASSWORD} \
     -Dcassandra.host=cassandra \
     -Dcassandra.keyspace=${CASSANDRA_KEYSPACE} \
-    -jar broker.jar
+    -jar /broker.jar
