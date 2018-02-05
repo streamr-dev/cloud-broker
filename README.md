@@ -18,6 +18,8 @@ Project uses Gradle for build automation. We provide sensible default configurat
 In most cases, you will want to run this service as a [pre-built Docker image](https://hub.docker.com/r/streamr/broker/).
 See https://github.com/streamr-dev/streamr-docker-dev for more information on how to run the Streamr cloud architecture.
 
+If you are developing this service in particular, or are otherwise inclined, you can run this service by running method
+`main` of `com.streamr.broker.Main` via your IDE.
 
 ## Publishing
 A [Docker image](https://hub.docker.com/r/streamr/broker/) is automatically built and pushed to DockerHub when commits
