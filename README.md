@@ -1,8 +1,16 @@
-# Broker
-Consumes StreamrBinaryMessages from a Kafka topic and forwards them to Redis and
-Cassandra.
+# Cloud Broker
+An essential long-running service of the cloud Streamr stack. Listens for data from Apache Kafka and forwards it to Apache Cassandra (for long-term persistence) and Redis (for immediate consumption by Streamr's engine-and-editor).
 
-## Performance test
+## Building
+
+Project uses Gradle for build automation. We provide sensible default configurations for IntelliJ IDEA but project can be developed with other IDEs as well.
+
+- Use Gradle task `test` to run tests.
+- Use Gradle task `shadowJar` to build project into a Jar. 
+
+
+## Misc
+### Performance test
 
 The performance test is implemented in class `PerformanceTest.java`. Before
 each test case we set up a fresh Kafka and Cassandra. The data is first pushed
