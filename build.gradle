@@ -14,6 +14,9 @@ apply plugin: 'java'
 apply plugin: 'groovy'
 apply plugin: 'com.github.johnrengelman.shadow' // Support for "fat" jars
 
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
 sourceSets {
 	main {
 		java
@@ -26,7 +29,7 @@ sourceSets {
 	performanceTest {
 		java
 		resources
-		compileClasspath += sourceSets.main.runtimeClasspath
+		compileClasspath += sourceSets.test.runtimeClasspath
 	}
 }
 
