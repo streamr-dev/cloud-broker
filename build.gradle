@@ -4,33 +4,27 @@ version '1.0-SNAPSHOT'
 buildscript {
 	repositories {
 		jcenter()
+		maven {
+			url "https://plugins.gradle.org/m2/"
+		}
 	}
 	dependencies {
 		classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.4'
+		classpath "com.netflix.nebula:nebula-project-plugin:3.4.0"
 	}
 }
 
 apply plugin: 'java'
 apply plugin: 'groovy'
 apply plugin: 'com.github.johnrengelman.shadow' // Support for "fat" jars
+apply plugin: 'nebula.facet'                    // Healthy defaults for a standard Gradle project
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
-sourceSets {
-	main {
-		java
-		resources
-	}
-	test {
-		groovy
-		resources
-	}
-	performanceTest {
-		java
-		resources
-		compileClasspath += sourceSets.test.runtimeClasspath
-	}
+facets {
+	integrationTest
+	performanceTest
 }
 
 repositories {
