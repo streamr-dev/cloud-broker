@@ -5,15 +5,23 @@ by Streamr's engine-and-editor).
 
 ![Where Cloud Broker sits in Streamr cloud stack](high-level.png)
 
+
 ## Building
 
 Project uses Gradle for build automation. We provide sensible default configurations for IntelliJ IDEA but project can be developed with other IDEs as well.
 
 - Use Gradle task `test` to run tests.
-- Use Gradle task `shadowJar` to build project into a Jar. 
+- Use Gradle task `shadowJar` to build project into a Jar.
+
+
+## Running
+In most cases, you will want to run this service as a [pre-built Docker image](https://hub.docker.com/r/streamr/broker/).
+See https://github.com/streamr-dev/streamr-docker-dev for more information on how to run the Streamr cloud architecture.
 
 
 ## Misc
+
+
 ### Performance test
 
 The performance test is implemented in class `PerformanceTest.java`. Before
