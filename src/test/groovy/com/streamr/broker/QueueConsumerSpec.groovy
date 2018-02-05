@@ -36,8 +36,8 @@ class QueueConsumerSpec extends Specification {
 
 		then:
 		conditions.eventually {
-			reporter1.receivedMessages == [ExampleData.MESSAGE_1, ExampleData.MESSAGE_2]
-			reporter2.receivedMessages == [ExampleData.MESSAGE_1, ExampleData.MESSAGE_2]
+			assert reporter1.receivedMessages == [ExampleData.MESSAGE_1, ExampleData.MESSAGE_2]
+			assert reporter2.receivedMessages == [ExampleData.MESSAGE_1, ExampleData.MESSAGE_2]
 		}
 	}
 
@@ -50,8 +50,8 @@ class QueueConsumerSpec extends Specification {
 
 		then:
 		conditions.eventually {
-			reporter1.closeInvocations == 1
-			reporter2.closeInvocations == 1
+			assert reporter1.closeInvocations == 1
+			assert reporter2.closeInvocations == 1
 		}
 	}
 
