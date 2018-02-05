@@ -19,6 +19,12 @@ In most cases, you will want to run this service as a [pre-built Docker image](h
 See https://github.com/streamr-dev/streamr-docker-dev for more information on how to run the Streamr cloud architecture.
 
 
+## Publishing
+A [Docker image](https://hub.docker.com/r/streamr/broker/) is automatically built and pushed to DockerHub when commits
+are pushed to branch `master`.
+
+Currently project has no CI system configured nor are any .jar artifacts published to central repositories. 
+
 ## Misc
 
 
