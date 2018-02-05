@@ -1,5 +1,9 @@
 # Cloud Broker
-An essential long-running service of the cloud Streamr stack. Listens for data from Apache Kafka and forwards it to Apache Cassandra (for long-term persistence) and Redis (for immediate consumption by Streamr's engine-and-editor).
+An essential service of the Streamr cloud architecture responsible for message brokering. Listens to Apache Kafka for
+new data and forwards it to Apache Cassandra (for long-term persistence) and Redis (for immediate consumption
+by Streamr's engine-and-editor).
+
+![Where Cloud Broker sits in Streamr cloud stack](high-level.png)
 
 ## Building
 
