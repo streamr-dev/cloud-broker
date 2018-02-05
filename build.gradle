@@ -27,6 +27,12 @@ facets {
 	performanceTest
 }
 
+sourceSets {
+	test {
+		groovy
+	}
+}
+
 repositories {
 	mavenCentral()
 }
