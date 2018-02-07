@@ -6,6 +6,7 @@ import com.lambdaworks.redis.api.sync.RedisCommands
 import com.lambdaworks.redis.codec.ByteArrayCodec
 import com.lambdaworks.redis.pubsub.RedisPubSubListener
 import com.lambdaworks.redis.pubsub.api.sync.RedisPubSubCommands
+import com.streamr.broker.Config
 import com.streamr.broker.StreamrBinaryMessage
 import com.streamr.broker.StreamrBinaryMessageWithKafkaMetadata
 import com.streamr.broker.stats.LoggedStats
@@ -14,9 +15,6 @@ import spock.lang.Specification
 import spock.util.concurrent.BlockingVariable
 
 class RedisReporterSpec extends Specification {
-	final static String REDIS_HOST = "127.0.0.1"
-	final static String REDIS_PASS = ""
-
 	StreamrBinaryMessageWithKafkaMetadata testMessage = new StreamrBinaryMessageWithKafkaMetadata(
 		"streamId",
 		0,
@@ -29,12 +27,12 @@ class RedisReporterSpec extends Specification {
 		10560
 	)
 
-	RedisReporter reporter = new RedisReporter(REDIS_HOST, REDIS_PASS)
+	RedisReporter reporter = new RedisReporter(Config.REDIS_HOST, Config.REDIS_PASSWORD)
 	RedisClient client
 
 	void setup() {
 		reporter.setStats(new LoggedStats())
-		RedisURI uri = RedisURI.Builder.redis(REDIS_HOST).withPassword(REDIS_PASS).build()
+		RedisURI uri = RedisURI.Builder.redis(Config.REDIS_HOST).withPassword(Config.REDIS_PASSWORD).build()
 		client = RedisClient.create(uri)
 	}
 

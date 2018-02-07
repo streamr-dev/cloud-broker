@@ -8,24 +8,15 @@ import com.streamr.broker.stats.LoggedStats;
 import java.util.concurrent.ExecutionException;
 
 public class Main {
-	public static void main(String[] args) throws ExecutionException, InterruptedException {
-		String zookeeper = System.getProperty("kafka.server", "127.0.0.1:9092");
-		String kafkaGroup = System.getProperty("kafka.group", "data-dev");
-		String kafkaTopic = System.getProperty("kafka.topic", "data-dev");
-		String redisHost = System.getProperty("redis.host", "127.0.0.1");
-		String redisPassword = System.getProperty("redis.password", "");
-		String cassandraHost = System.getProperty("cassandra.host", "127.0.0.1");
-		String cassandraKeySpace = System.getProperty("cassandra.keyspace", "streamr_dev");
-		int queueSize = Integer.parseInt(System.getProperty("queuesize", "200"));
-		int statsIntervalInSec = Integer.parseInt(System.getProperty("statsinterval", "30"));
 
-		BrokerProcess brokerProcess = new BrokerProcess(queueSize);
-		brokerProcess.setStats(new LoggedStats(), statsIntervalInSec);
+	public static void main(String[] args) throws ExecutionException, InterruptedException {
+		BrokerProcess brokerProcess = new BrokerProcess(Config.QUEUE_SIZE);
+		brokerProcess.setStats(new LoggedStats(), Config.STATS_INTERVAL_IN_SECS);
 		brokerProcess.setUpProducer((queueProducer ->
-			new KafkaListener(zookeeper, kafkaGroup, kafkaTopic, queueProducer)));
+			new KafkaListener(Config.KAFKA_HOST, Config.KAFKA_GROUP, Config.KAFKA_TOPIC, queueProducer)));
 		brokerProcess.setUpConsumer(
-			new RedisReporter(redisHost, redisPassword),
-			new CassandraBatchReporter(cassandraHost, cassandraKeySpace)
+			new RedisReporter(Config.REDIS_HOST, Config.REDIS_PASSWORD),
+			new CassandraBatchReporter(Config.CASSANDRA_HOST, Config.CASSANDRA_KEYSPACE)
 		);
 		brokerProcess.startAll();
 	}
