@@ -59,12 +59,12 @@ class MainSpec extends Specification {
 			)
 		}
 
-		then: "all data points are published into Redis pub/sub"
+		then: "all data points are published into Redis Pub/Sub"
 		new PollingConditions(timeout: 5).eventually {
 			assert receivedMessages.size() == 500
 		}
 
-		then: "last offset is stored in Redis key-value for the stream-partition pair"
+		then: "last offset is stored in Redis Key-Value"
 		getRedisKeyValue("${streamId}-1") == getOffsetOfMessage(receivedMessages.last())
 
 		and: "all data points are stored into Cassandra"
