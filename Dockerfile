@@ -12,7 +12,7 @@ COPY . /broker-src
 RUN apk update && \
     apk --no-cache add bash && \
     ./gradlew shadowJar && \
-    mv /broker-src/build/libs/broker-*-all.jar /broker.jar && \
+    mv /broker-src/build/libs/cloud-broker-*-all.jar /cloud-broker.jar && \
     apk del bash && \
     rm -rf /broker-src/build && \
     rm -rf /root/.gradle && \
@@ -37,4 +37,4 @@ CMD java \
     -Dredis.password=${REDIS_PASSWORD} \
     -Dcassandra.host=${CASSANDRA_HOST} \
     -Dcassandra.keyspace=${CASSANDRA_KEYSPACE} \
-    -jar /broker.jar
+    -jar /cloud-broker.jar
