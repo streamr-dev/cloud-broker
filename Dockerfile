@@ -19,13 +19,13 @@ RUN apk update && \
     rm -rf /var/cache/apk/*
 
 # Default environment variables
-ENV KAFKA_HOST localhost
+ENV KAFKA_HOST kafka
 ENV KAFKA_PORT 9092
 ENV KAFKA_GROUP data-dev
 ENV KAFKA_TOPIC data-dev
-ENV REDIS_HOST localhost
+ENV REDIS_HOST redis
 ENV REDIS_PASSWORD ""
-ENV CASSANDRA_HOST localhost
+ENV CASSANDRA_HOST cassandra
 ENV CASSANDRA_KEYSPACE streamr_dev
 
 # Run broker when container launches
