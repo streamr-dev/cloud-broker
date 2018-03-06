@@ -19,19 +19,22 @@ RUN apk update && \
     rm -rf /var/cache/apk/*
 
 # Default environment variables
+ENV KAFKA_HOST localhost
 ENV KAFKA_PORT 9092
 ENV KAFKA_GROUP data-dev
 ENV KAFKA_TOPIC data-dev
+ENV REDIS_HOST localhost
 ENV REDIS_PASSWORD ""
+ENV CASSANDRA_HOST localhost
 ENV CASSANDRA_KEYSPACE streamr_dev
 
 # Run broker when container launches
 CMD java \
-    -Dkafka.server=kafka:${KAFKA_PORT} \
+    -Dkafka.server=${KAFKA_HOST}:${KAFKA_PORT} \
     -Dkafka.group=${KAFKA_GROUP} \
     -Dkafka.topic=${KAFKA_TOPIC} \
-    -Dredis.host=redis \
+    -Dredis.host=${REDIS_HOST} \
     -Dredis.password=${REDIS_PASSWORD} \
-    -Dcassandra.host=cassandra \
+    -Dcassandra.host=${CASSANDRA_HOST} \
     -Dcassandra.keyspace=${CASSANDRA_KEYSPACE} \
     -jar /broker.jar
