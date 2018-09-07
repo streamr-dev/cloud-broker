@@ -19,10 +19,12 @@ public class LoggedStats implements Stats {
 	private long totalBytesWritten = 0;
 	private int totalEventsRead = 0;
 	private int totalEventsWritten = 0;
+	private long totalWriteErrors = 0;
 
 	private long lastBytesRead = 0;
 	private long lastBytesWritten = 0;
 	private int lastEventsWritten = 0;
+	private long lastWriteErrors = 0;
 
 	@Override
 	public void start(int intervalInSec) {
@@ -50,6 +52,11 @@ public class LoggedStats implements Stats {
 	public void onWrittenToRedis(StreamrBinaryMessageWithKafkaMetadata msg) {}
 
 	@Override
+	public void onCassandraWriteError() {
+		totalWriteErrors++;
+	}
+
+	@Override
 	public void report() {
 		if (lastBytesRead == totalBytesRead) {
 			log.info("No new data.");
@@ -65,19 +72,22 @@ public class LoggedStats implements Stats {
 			int eventWritePerSec = eventsWrittenSinceLastReport / intervalInSec;
 			double kbReadPerSec = kbReadSinceLastReport / intervalInSec;
 			int eventReadPerSec = eventsReadSinceLastReport / intervalInSec;
+			long writeErrors = totalWriteErrors - lastWriteErrors;
 
 			lastBytesRead = totalBytesRead;
 			lastBytesWritten = totalBytesWritten;
 			lastEventsWritten = totalEventsWritten;
+			lastWriteErrors = totalWriteErrors;
 
 			String template = "\n" +
 				"\tLast timestamp {}\n" +
 				"\tBackpressure {} kB / {} events\n" +
+				"\tRead throughput {} kB/s or {} event/s\n" +
 				"\tWrite throughput {} kB/s or {} event/s\n" +
-				"\tRead throughput {} kB/s or {} event/s";
+				"\tWrite errors {}";
 
-			log.info(template, lastDate, kbPackPresure, eventBackPressure, kbWritePerSec, eventWritePerSec,
-				kbReadPerSec, eventReadPerSec);
+			log.info(template, lastDate, kbPackPresure, eventBackPressure, kbReadPerSec, eventReadPerSec,
+					kbWritePerSec, eventWritePerSec, writeErrors);
 		}
 	}
 }

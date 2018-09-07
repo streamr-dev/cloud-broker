@@ -46,6 +46,8 @@ class LoggedStatsSpec extends Specification {
 		loggedStats.onWrittenToCassandra(ExampleData.MESSAGE_1)
 		loggedStats.onWrittenToCassandra(ExampleData.MESSAGE_2)
 
+		loggedStats.onCassandraWriteError()
+
 		when:
 		loggedStats.report()
 		loggedStats.report()
@@ -54,8 +56,9 @@ class LoggedStatsSpec extends Specification {
 			"Statistics logger started. Logging interval is 1 sec(s).",
 			"\n\tLast timestamp 1970-01-01 02:00:00\n" +
 				"\tBackpressure 0.166 kB / 4 events\n" +
+				"\tRead throughput 0.249 kB/s or 6 event/s\n" +
 				"\tWrite throughput 0.083 kB/s or 2 event/s\n" +
-				"\tRead throughput 0.249 kB/s or 6 event/s",
+				"\tWrite errors 1",
 			"No new data."
 		]
 	}

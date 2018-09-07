@@ -123,6 +123,7 @@ public class CassandraBatchReporter implements Reporter {
 					t,
 					commitIntervalInMs
 				);
+				stats.onCassandraWriteError();
 				scheduledExecutor.schedule(Batch.this, commitIntervalInMs, TimeUnit.MILLISECONDS);
 			}
 		};
