@@ -31,6 +31,34 @@ class KafkaRecordTransformerSpec extends Specification {
 		msgWithMetaData.kafkaPartition == 7
 	}
 
+	void "transform() with version 29 returns StreamrBinaryMessageWithKafkaMetadata with metadata attached"() {
+		byte version = 29
+		StreamrBinaryMessage msg = new StreamrBinaryMessage(
+				version,
+				"streamId",
+				5,
+				666666666,
+				10,
+				StreamrBinaryMessage.CONTENT_TYPE_STRING,
+				"".bytes,
+				StreamrBinaryMessage.SIGNATURE_TYPE_ETH,
+				'0xF915eD664e43C50eB7b9Ca7CfEB992703eDe55c4',
+				'0xcb1fa20f2f8e75f27d3f171d236c071f0de39e4b497c51b390306fc6e7e112bb415ecea1bd093320dd91fd91113748286711122548c52a15179822a014dc14931b',
+		)
+		ConsumerRecord<String, byte[]> record = new ConsumerRecord<>("streamId", 7, 15, null, msg.toBytes())
+
+		when:
+		StreamrBinaryMessageWithKafkaMetadata msgWithMetaData = transformer.transform(record)
+
+		then: "base message unaffected"
+		msgWithMetaData.toBytes() == msg.toBytes()
+
+		and: "meta data attached"
+		msgWithMetaData.offset == 15
+		msgWithMetaData.previousOffset == null
+		msgWithMetaData.kafkaPartition == 7
+	}
+
 	void "transform() on 2nd invocation with same streamId returns StreamrBinaryMessageWithKafkaMetadata with previous offset attached"() {
 		StreamrBinaryMessage msg1 = new StreamrBinaryMessage(
 			"streamId",
