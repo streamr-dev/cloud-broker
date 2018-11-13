@@ -21,6 +21,7 @@ class QueueConsumerSpec extends Specification {
 		BlockingQueue blockingQueue = new ArrayBlockingQueue<>(5)
 		blockingQueue.put(ExampleData.MESSAGE_1)
 		blockingQueue.put(ExampleData.MESSAGE_2)
+		blockingQueue.put(ExampleData.MESSAGE_3)
 		queueConsumer = new QueueConsumer(blockingQueue, reporter1, reporter2)
 	}
 
@@ -36,8 +37,8 @@ class QueueConsumerSpec extends Specification {
 
 		then:
 		conditions.eventually {
-			assert reporter1.receivedMessages == [ExampleData.MESSAGE_1, ExampleData.MESSAGE_2]
-			assert reporter2.receivedMessages == [ExampleData.MESSAGE_1, ExampleData.MESSAGE_2]
+			assert reporter1.receivedMessages == [ExampleData.MESSAGE_1, ExampleData.MESSAGE_2, ExampleData.MESSAGE_3]
+			assert reporter2.receivedMessages == [ExampleData.MESSAGE_1, ExampleData.MESSAGE_2, ExampleData.MESSAGE_3]
 		}
 	}
 
