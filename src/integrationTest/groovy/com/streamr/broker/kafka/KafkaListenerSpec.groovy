@@ -3,6 +3,7 @@ package com.streamr.broker.kafka
 import com.streamr.broker.Config
 import com.streamr.broker.KafkaDataProducer
 import com.streamr.broker.StreamrBinaryMessage
+import com.streamr.broker.StreamrBinaryMessageV28
 import com.streamr.broker.StreamrBinaryMessageWithKafkaMetadata
 import spock.lang.Specification
 import spock.util.concurrent.PollingConditions
@@ -18,7 +19,7 @@ class KafkaListenerSpec extends Specification {
 	void setupSpec() {
 		// Intentional: Auto-create topic by connecting and producing
 		def p = new KafkaDataProducer(Config.KAFKA_HOST, DATA_TOPIC)
-		p.produceToKafka(new StreamrBinaryMessage("sss", 0, 0, 0, (byte)0, "".bytes))
+		p.produceToKafka(new StreamrBinaryMessageV28("sss", 0, 0, 0, (byte)0, "".bytes))
 		p.close()
 	}
 
@@ -39,7 +40,7 @@ class KafkaListenerSpec extends Specification {
 		and:
 		KafkaDataProducer producer = new KafkaDataProducer(Config.KAFKA_HOST, DATA_TOPIC)
 		(1..5).each {
-			def msg = new StreamrBinaryMessage(
+			def msg = new StreamrBinaryMessageV28(
 				"streamId",
 				0,
 				System.currentTimeMillis(),

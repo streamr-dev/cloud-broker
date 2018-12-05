@@ -51,6 +51,6 @@ public class RedisReporter implements Reporter {
 	}
 
 	private static String formKey(StreamrBinaryMessageWithKafkaMetadata msg) {
-		return msg.getStreamId() + "-" + msg.getPartition();
+		return msg.getStreamrBinaryMessage().getStreamId() + "-" + msg.getStreamrBinaryMessage().getPartition();
 	}
 }

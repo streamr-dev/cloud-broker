@@ -78,7 +78,7 @@ public class CassandraBatchReporter implements Reporter {
 	}
 
 	private static String formKey(StreamrBinaryMessageWithKafkaMetadata msg) {
-		return msg.getStreamId() + "|" + msg.getPartition();
+		return msg.getStreamrBinaryMessage().getStreamId() + "|" + msg.getStreamrBinaryMessage().getPartition();
 	}
 
 	private int getCommitIntervalInMs() {
@@ -116,7 +116,7 @@ public class CassandraBatchReporter implements Reporter {
 				StreamrBinaryMessageWithKafkaMetadata lastMessage = messages.get(messages.size() - 1);
 				log.error("Failed to write to '{}'. Offsets {} - {}. Total bytes {}. Exception: {}." +
 						"Re-scheduled to {} ms.",
-					firstMessage.getStreamId(),
+					firstMessage.getStreamrBinaryMessage().getStreamId(),
 					firstMessage.getOffset(),
 					lastMessage.getOffset(),
 					totalSizeInBytes,
@@ -137,7 +137,7 @@ public class CassandraBatchReporter implements Reporter {
 		}
 
 		void add(StreamrBinaryMessageWithKafkaMetadata msg) {
-			totalSizeInBytes += msg.sizeInBytes();
+			totalSizeInBytes += msg.getStreamrBinaryMessage().sizeInBytes();
 			messages.add(msg);
 		}
 

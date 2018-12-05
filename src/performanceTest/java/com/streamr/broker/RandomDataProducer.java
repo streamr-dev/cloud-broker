@@ -21,7 +21,7 @@ class RandomDataProducer {
 			0,
 			System.currentTimeMillis(),
 			1000,
-			StreamrBinaryMessageWithKafkaMetadata.CONTENT_TYPE_STRING,
+			StreamrBinaryMessage.CONTENT_TYPE_STRING,
 			generatePayload(),
 			0,
 			offset,

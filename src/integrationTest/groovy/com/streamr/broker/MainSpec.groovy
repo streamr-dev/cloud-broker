@@ -49,7 +49,7 @@ class MainSpec extends Specification {
 
 		when: "500 new data points arrive to Kafka"
 		(1..500).each {
-			dataProducer.produceToKafka(new StreamrBinaryMessage(
+			dataProducer.produceToKafka(new StreamrBinaryMessageV28(
 				streamId,
 				1,
 				System.currentTimeMillis() + (it * 10000),

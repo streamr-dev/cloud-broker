@@ -113,6 +113,9 @@ class RedisReporterSpec extends Specification {
 
 			@Override
 			void report() {}
+
+			@Override
+			void onCassandraWriteError() {}
 		})
 
 		when:

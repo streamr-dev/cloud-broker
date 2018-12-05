@@ -29,21 +29,24 @@ class MeanStats implements Stats {
 
 	@Override
 	public void onReadFromKafka(StreamrBinaryMessageWithKafkaMetadata msg) {
-		totalBytesRead += msg.sizeInBytes();
+		totalBytesRead += msg.getStreamrBinaryMessage().sizeInBytes();
 		numOfEventsRead++;
 	}
 
 	@Override
 	public void onWrittenToCassandra(StreamrBinaryMessageWithKafkaMetadata msg) {
-		totalBytesWrittenToCassandra += msg.sizeInBytes();
+		totalBytesWrittenToCassandra += msg.getStreamrBinaryMessage().sizeInBytes();
 		totalEventsWrittenToCassandra++;
 	}
 
 	@Override
 	public void onWrittenToRedis(StreamrBinaryMessageWithKafkaMetadata msg) {
-		totalBytesWrittenToRedis += msg.sizeInBytes();
+		totalBytesWrittenToRedis += msg.getStreamrBinaryMessage().sizeInBytes();
 		totalEventsWrittenToRedis++;
 	}
+
+	@Override
+	public void onCassandraWriteError(){}
 
 	@Override
 	public void report() {

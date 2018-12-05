@@ -38,5 +38,14 @@
     <orderEntry type="library" name="Gradle: com.github.jnr:jnr-x86asm:1.0.2" level="project" />
     <orderEntry type="library" name="Gradle: com.github.jnr:jnr-constants:0.9.0" level="project" />
     <orderEntry type="library" name="Gradle: io.netty:netty-codec:4.1.6.Final" level="project" />
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.sdkman/candidates/grails/2.5.6/lib/com.google.code.gson/gson/jars/gson-2.2.4.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
   </component>
 </module>
