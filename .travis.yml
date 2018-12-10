@@ -10,9 +10,20 @@ jobs:
   - stage: Unit tests
     name: Gradle Tests
     script:
-    - ./gradlew test
+    - "./gradlew test"
     if: tag IS blank
   - stage: Build docker (dev)
-    script:
-    - echo "TODO"
     if: tag IS blank
+    env:
+    - OWNER=streamr
+    - IMAGE_NAME=cloud-broker
+    - TAG=stg
+    script:
+    - docker build -t $OWNER/$IMAGE_NAME:$TAG .
+    deploy:
+    - provider: script
+      script: bash .travis_scripts/deploy_docker.sh staging
+env:
+  global:
+  - secure: HyoJAnz2gKMV5eVHtUtu/l2Lvwq1r2vyMD8JcpTPly+YHRuTEmiLBSxGfB4guECOoNYydN+NPvjZdhUShuWKX5kX2ScjjT00w+uueKP4ws87+gMENFSYVfk27v0KXsj1suFywW8uvKBZ6Au/WyLOB+6o4VjhEAKq+Du7CpUZ+yfhl1blw+4snSqhbdBDlpmEHMJL2Po3PSRlkiagksDlOOWtnB9o5ngeeLMqv8Vwh55svYbkKGiJx1e4fKfafs4zUq0+HYU/IuGpmZxgiMnazN90fHUwpn81IjTx7t3wH3RTvHPzOFiwsro6CMabDMaQcJKxmFoACMKyRbZQAf2Yc9caNHKCkg65KHQu5Blw1wKnbuBrNvcTZBInqRN/BB+h0h3pPm0FWM99qNtAp4YmbLC5Sg+YizyAvRIGDP8mG4OMhxvpuSX8U+cK2dkjVy6rnGztFWHe73pXnwrmfRlFxjMx5YGPyT/gEih2nhmRnfcO8uxZj/xUn2x0Rkr7SrE9hjWYMwfJrq2SYRPEpv3cj1/GFpcYN9A0kZXfKdoEvEmyMdVQRV8Vp6iSWxowyysiZ3iy1e8Y4NMOROjzOB5JvOB4Fhum1cR0CTrYVHmprkcQtEycg6YhKEZb9YRWWsJtC9qgH/zvdDsmuCsjcwsP1UBeivJgxucPxPXNJq5bigE=
+  - secure: l7hkGJ6R4pf9Ih82N01uqq3dANBamKYZ6qSWMmYZLdWDA2LqMuwXgNtc1etps/cs//DaTPQAT11D1+XU/bb6kURDAw55kJlC5mV5epkx2UUEv8vkieI0BJwH83HeZaCBHWVbxRqGCE7yGY/zGS95esdzLTxXQildqqP1YeBpoBC4J4kU18RNmUhLqPXgg/rP+y96CVreKEMKi8oH2mEXlilXJrLE6hY8qkvlcxvhEfp1SpsG5SuD+noglqPARPhBN069PIGnEOgZ1+RKUgPcslWA0qbhAyCo41FsC7NuPhlSoXCPxSziaqiG4k/m9HQPGELsFi2p0DqjhWYOt5C4EVmidqFXSKlbO5ho48+YieVqL0/nT5g9FZgaUTPRGzgcXE4fyinpzNce5vZDA0Ka4emYApMjAM8Ng9wpTWUu37rEz9vB40+XdBkrH1J1Ow0onIsxyJiQt/S1OUg1rrgzDHpe829WGjvW1EALPoQ1pon//ZTIc0lAgEuuBf5GaOaW/LsLIvuw87cIKhWwcOfF6qOnvoa5byQjMlzZTIKiqv71ZPZJ2sUlo+0tRr51TNxlW8CodPp2hAsNyM9kpK54vEJS6NsYSvLekmem97EK3nub6qO7I+fHSLsIdSrtO7lmNHJu8Egc4tnpx0cyFSAxaVnhPsU8eCN/wGMGEwBtq4Q=
