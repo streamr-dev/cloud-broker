@@ -7,6 +7,8 @@ import org.apache.logging.log4j.core.*
 import org.apache.logging.log4j.core.appender.DefaultErrorHandler
 import spock.lang.Specification
 
+import java.text.SimpleDateFormat
+
 class LoggedStatsSpec extends Specification {
 	List<String> recordedLogs = []
 	Appender testHandler = new TestAppender()
@@ -51,10 +53,11 @@ class LoggedStatsSpec extends Specification {
 		when:
 		loggedStats.report()
 		loggedStats.report()
+
 		then:
 		recordedLogs == [
 			"Statistics logger started. Logging interval is 1 sec(s).",
-			"\n\tLast timestamp 1970-01-01 02:00:00\n" +
+			"\n\tLast timestamp ${new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(0))}\n" +
 				"\tBackpressure 0.166 kB / 4 events\n" +
 				"\tRead throughput 0.249 kB/s or 6 event/s\n" +
 				"\tWrite throughput 0.083 kB/s or 2 event/s\n" +
