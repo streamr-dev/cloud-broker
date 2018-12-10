@@ -1,0 +1,18 @@
+sudo: required
+services:
+- docker
+branches:
+  only:
+  - master
+  - "/^v\\d+\\.\\d+(\\.\\d+)?(-\\S*)?$/"
+jobs:
+  include:
+  - stage: Unit tests
+    name: Gradle Tests
+    script:
+    - ./gradlew test
+    if: tag IS blank
+  - stage: Build docker (dev)
+    script:
+    - echo "TODO"
+    if: tag IS blank
