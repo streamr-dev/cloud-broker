@@ -28,9 +28,9 @@ public class KafkaSpammer {
 	}
 
 	private void sendRandomDataToKafka() {
-		StreamrBinaryMessage msg = randomDataProducer.provideMessage(0);
-		String kafkaPartitionKey = msg.getStreamId() +  "-" + msg.getPartition();
-		ProducerRecord<String, byte[]> record = new ProducerRecord<>(dataTopic, kafkaPartitionKey, msg.toBytes());
+		StreamrBinaryMessageWithKafkaMetadata msg = randomDataProducer.provideMessage(0);
+		String kafkaPartitionKey = msg.getStreamrBinaryMessage().getStreamId() +  "-" + msg.getStreamrBinaryMessage().getPartition();
+		ProducerRecord<String, byte[]> record = new ProducerRecord<>(dataTopic, kafkaPartitionKey, msg.getStreamrBinaryMessage().toBytes());
 		producer.send(record);
 	}
 

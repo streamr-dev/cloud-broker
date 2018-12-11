@@ -32,44 +32,44 @@ class CassandraStatementBuilder {
 	}
 
 	BoundStatement eventInsert(StreamrBinaryMessageWithKafkaMetadata msg) {
-		if (msg.getTTL() > 0) {
+		if (msg.getStreamrBinaryMessage().getTTL() > 0) {
 			return eventInsertTtlPs.bind(
-				msg.getStreamId(),
-				msg.getPartition(),
+				msg.getStreamrBinaryMessage().getStreamId(),
+				msg.getStreamrBinaryMessage().getPartition(),
 				msg.getKafkaPartition(),
 				msg.getOffset(),
 				msg.getPreviousOffset(),
-				new Date(msg.getTimestamp()),
-				ByteBuffer.wrap(msg.toBytes()),
-				msg.getTTL());
+				new Date(msg.getStreamrBinaryMessage().getTimestamp()),
+				ByteBuffer.wrap(msg.getStreamrBinaryMessage().toBytes()),
+				msg.getStreamrBinaryMessage().getTTL());
 		} else {
 			return eventInsertPs.bind(
-				msg.getStreamId(),
-				msg.getPartition(),
+				msg.getStreamrBinaryMessage().getStreamId(),
+				msg.getStreamrBinaryMessage().getPartition(),
 				msg.getKafkaPartition(),
 				msg.getOffset(),
 				msg.getPreviousOffset(),
-				new Date(msg.getTimestamp()),
-				ByteBuffer.wrap(msg.toBytes()));
+				new Date(msg.getStreamrBinaryMessage().getTimestamp()),
+				ByteBuffer.wrap(msg.getStreamrBinaryMessage().toBytes()));
 		}
 	}
 
 
 	BoundStatement tsInsert(StreamrBinaryMessageWithKafkaMetadata msg) {
-		if (msg.getTTL() > 0) {
+		if (msg.getStreamrBinaryMessage().getTTL() > 0) {
 			return tsInsertTtlPs.bind(
-				msg.getStreamId(),
-				msg.getPartition(),
+				msg.getStreamrBinaryMessage().getStreamId(),
+				msg.getStreamrBinaryMessage().getPartition(),
 				msg.getOffset(),
-				new Date(msg.getTimestamp()),
-				msg.getTTL()
+				new Date(msg.getStreamrBinaryMessage().getTimestamp()),
+				msg.getStreamrBinaryMessage().getTTL()
 			);
 		} else {
 			return tsInsertPs.bind(
-				msg.getStreamId(),
-				msg.getPartition(),
+				msg.getStreamrBinaryMessage().getStreamId(),
+				msg.getStreamrBinaryMessage().getPartition(),
 				msg.getOffset(),
-				new Date(msg.getTimestamp())
+				new Date(msg.getStreamrBinaryMessage().getTimestamp())
 			);
 		}
 	}
@@ -88,8 +88,8 @@ class CassandraStatementBuilder {
 		// Avoid writing sub-second timestamps for same key
 		long lastWrittenTimestamp = -1001;
 		for (StreamrBinaryMessageWithKafkaMetadata msg : messages) {
-			if (msg.getTimestamp() - lastWrittenTimestamp > 1000) {
-				lastWrittenTimestamp = msg.getTimestamp();
+			if (msg.getStreamrBinaryMessage().getTimestamp() - lastWrittenTimestamp > 1000) {
+				lastWrittenTimestamp = msg.getStreamrBinaryMessage().getTimestamp();
 				batchStatement.add(tsInsert(msg));
 			}
 		}

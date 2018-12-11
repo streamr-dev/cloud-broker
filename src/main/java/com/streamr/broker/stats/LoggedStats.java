@@ -38,14 +38,14 @@ public class LoggedStats implements Stats {
 	@Override
 	public void onReadFromKafka(StreamrBinaryMessageWithKafkaMetadata msg) {
 		totalEventsRead++;
-		totalBytesRead += msg.sizeInBytes();
-		lastTimestamp = msg.getTimestamp();
+		totalBytesRead += msg.getStreamrBinaryMessage().sizeInBytes();
+		lastTimestamp = msg.getStreamrBinaryMessage().getTimestamp();
 	}
 
 	@Override
 	public void onWrittenToCassandra(StreamrBinaryMessageWithKafkaMetadata msg) {
 		totalEventsWritten++;
-		totalBytesWritten += msg.sizeInBytes();
+		totalBytesWritten += msg.getStreamrBinaryMessage().sizeInBytes();
 	}
 
 	@Override
