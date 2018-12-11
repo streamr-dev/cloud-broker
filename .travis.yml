@@ -38,7 +38,7 @@ jobs:
       secret_access_key:
         secure: KHZkcMX3v3WH1aD7B6EWvR3wW2dVUKrffwNJLz8aF3WvmAbvyypPCF87LFanwxIazdzWMveNdPR6dl7+nUryYNONnlo79Tp2Xzz5EJUKMxIePggNJd1972A9wCAnW3LlBhbOtPpglnRkQP4Xv7GDP8fbdrvpbj88Honpo75D482daQMSFt1jecLrr8sj6jla4EYIQnSbFbGdb6dfqYe55yjwEqz2ZV7MSdtY8utFT0oOHpNyKy+dirZCheVxIOtdoSUgzGdUtGyTWrsy2h5G4vOKBFC6c+O7tTZzPA9bZT6i+SFDkh/GDNwbEfRnmQAqEzoVU8h/U83F/ybQtskjP7VMhWG9oD/osWcjdTbU9xKDlWD+Q2iSLVpmMjaqqbnebjitmbhaL/pg8AwuYK81IjvZjrZysDUNY99fQIWXuYAyTzC5fu7WmCEVGk2pRdSlZuyNLuCgltPHKvItcB0A46qjFHZLGqxaobmzPNXQuuiXb/beYulR1lDSrfQeMOxjD1KDGor03MwwywZmvnKsF4yrwp+OTUuOgw9NvyILOSAiU+WX51DonJCuEqPnoarq9YTSIUnY1wI5P8fcwj2LPLwM3nx/O+v1f1SZj7WQug0LXBkbM/gaS1uTrqEZ42hgIGoLsNX2FTdxFt/v+6ylx3cPrZHbK7IkQg0R6qWPIzs=
       bucket: eu-west-1-stg-streamr-vault
-      key: broker/releases/ee.tar
+      key: broker/releases/broker.tar
       application: staging-broker-codedeploy
       deployment_group: staging-broker-deployment-group
       region: eu-west-1
