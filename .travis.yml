@@ -5,13 +5,43 @@ branches:
   only:
   - master
   - "/^v\\d+\\.\\d+(\\.\\d+)?(-\\S*)?$/"
+env:
+  global:
+  - secure: HyoJAnz2gKMV5eVHtUtu/l2Lvwq1r2vyMD8JcpTPly+YHRuTEmiLBSxGfB4guECOoNYydN+NPvjZdhUShuWKX5kX2ScjjT00w+uueKP4ws87+gMENFSYVfk27v0KXsj1suFywW8uvKBZ6Au/WyLOB+6o4VjhEAKq+Du7CpUZ+yfhl1blw+4snSqhbdBDlpmEHMJL2Po3PSRlkiagksDlOOWtnB9o5ngeeLMqv8Vwh55svYbkKGiJx1e4fKfafs4zUq0+HYU/IuGpmZxgiMnazN90fHUwpn81IjTx7t3wH3RTvHPzOFiwsro6CMabDMaQcJKxmFoACMKyRbZQAf2Yc9caNHKCkg65KHQu5Blw1wKnbuBrNvcTZBInqRN/BB+h0h3pPm0FWM99qNtAp4YmbLC5Sg+YizyAvRIGDP8mG4OMhxvpuSX8U+cK2dkjVy6rnGztFWHe73pXnwrmfRlFxjMx5YGPyT/gEih2nhmRnfcO8uxZj/xUn2x0Rkr7SrE9hjWYMwfJrq2SYRPEpv3cj1/GFpcYN9A0kZXfKdoEvEmyMdVQRV8Vp6iSWxowyysiZ3iy1e8Y4NMOROjzOB5JvOB4Fhum1cR0CTrYVHmprkcQtEycg6YhKEZb9YRWWsJtC9qgH/zvdDsmuCsjcwsP1UBeivJgxucPxPXNJq5bigE=
+  - secure: l7hkGJ6R4pf9Ih82N01uqq3dANBamKYZ6qSWMmYZLdWDA2LqMuwXgNtc1etps/cs//DaTPQAT11D1+XU/bb6kURDAw55kJlC5mV5epkx2UUEv8vkieI0BJwH83HeZaCBHWVbxRqGCE7yGY/zGS95esdzLTxXQildqqP1YeBpoBC4J4kU18RNmUhLqPXgg/rP+y96CVreKEMKi8oH2mEXlilXJrLE6hY8qkvlcxvhEfp1SpsG5SuD+noglqPARPhBN069PIGnEOgZ1+RKUgPcslWA0qbhAyCo41FsC7NuPhlSoXCPxSziaqiG4k/m9HQPGELsFi2p0DqjhWYOt5C4EVmidqFXSKlbO5ho48+YieVqL0/nT5g9FZgaUTPRGzgcXE4fyinpzNce5vZDA0Ka4emYApMjAM8Ng9wpTWUu37rEz9vB40+XdBkrH1J1Ow0onIsxyJiQt/S1OUg1rrgzDHpe829WGjvW1EALPoQ1pon//ZTIc0lAgEuuBf5GaOaW/LsLIvuw87cIKhWwcOfF6qOnvoa5byQjMlzZTIKiqv71ZPZJ2sUlo+0tRr51TNxlW8CodPp2hAsNyM9kpK54vEJS6NsYSvLekmem97EK3nub6qO7I+fHSLsIdSrtO7lmNHJu8Egc4tnpx0cyFSAxaVnhPsU8eCN/wGMGEwBtq4Q=
 jobs:
   include:
   - stage: Unit tests
     name: Gradle Tests
     script:
-    - "./gradlew test"
+    - "./gradlew test --stacktrace --debug"
+  - stage: Staging
     if: tag IS blank
+    name: Build Broker
+    script:
+    - gradle shadowJar
+    - mv $TRAVIS_BUILD_DIR/.codedeploy/.appspec.yml $TRAVIS_BUILD_DIR/build/libs/appspec.yml
+    - mv $TRAVIS_BUILD_DIR/.codedeploy $TRAVIS_BUILD_DIR/build/libs/
+    - tar -czvf $TRAVIS_BUILD_DIR/build/libs/broker.tar -C $TRAVIS_BUILD_DIR/build/libs/ cloud-broker-1.0-SNAPSHOT-all.jar appspec.yml .codedeploy
+    deploy:
+    - provider: s3
+      access_key_id: AKIAI3FGPGMK3EREJJTQ
+      secret_access_key:
+        secure: KHZkcMX3v3WH1aD7B6EWvR3wW2dVUKrffwNJLz8aF3WvmAbvyypPCF87LFanwxIazdzWMveNdPR6dl7+nUryYNONnlo79Tp2Xzz5EJUKMxIePggNJd1972A9wCAnW3LlBhbOtPpglnRkQP4Xv7GDP8fbdrvpbj88Honpo75D482daQMSFt1jecLrr8sj6jla4EYIQnSbFbGdb6dfqYe55yjwEqz2ZV7MSdtY8utFT0oOHpNyKy+dirZCheVxIOtdoSUgzGdUtGyTWrsy2h5G4vOKBFC6c+O7tTZzPA9bZT6i+SFDkh/GDNwbEfRnmQAqEzoVU8h/U83F/ybQtskjP7VMhWG9oD/osWcjdTbU9xKDlWD+Q2iSLVpmMjaqqbnebjitmbhaL/pg8AwuYK81IjvZjrZysDUNY99fQIWXuYAyTzC5fu7WmCEVGk2pRdSlZuyNLuCgltPHKvItcB0A46qjFHZLGqxaobmzPNXQuuiXb/beYulR1lDSrfQeMOxjD1KDGor03MwwywZmvnKsF4yrwp+OTUuOgw9NvyILOSAiU+WX51DonJCuEqPnoarq9YTSIUnY1wI5P8fcwj2LPLwM3nx/O+v1f1SZj7WQug0LXBkbM/gaS1uTrqEZ42hgIGoLsNX2FTdxFt/v+6ylx3cPrZHbK7IkQg0R6qWPIzs=
+      bucket: eu-west-1-stg-streamr-vault/broker/releases
+      local-dir: "$TRAVIS_BUILD_DIR/build/libs/"
+      acl: private
+      region: eu-west-1
+      skip_cleanup: true
+    - provider: codedeploy
+      access_key_id: AKIAI3FGPGMK3EREJJTQ
+      secret_access_key:
+        secure: KHZkcMX3v3WH1aD7B6EWvR3wW2dVUKrffwNJLz8aF3WvmAbvyypPCF87LFanwxIazdzWMveNdPR6dl7+nUryYNONnlo79Tp2Xzz5EJUKMxIePggNJd1972A9wCAnW3LlBhbOtPpglnRkQP4Xv7GDP8fbdrvpbj88Honpo75D482daQMSFt1jecLrr8sj6jla4EYIQnSbFbGdb6dfqYe55yjwEqz2ZV7MSdtY8utFT0oOHpNyKy+dirZCheVxIOtdoSUgzGdUtGyTWrsy2h5G4vOKBFC6c+O7tTZzPA9bZT6i+SFDkh/GDNwbEfRnmQAqEzoVU8h/U83F/ybQtskjP7VMhWG9oD/osWcjdTbU9xKDlWD+Q2iSLVpmMjaqqbnebjitmbhaL/pg8AwuYK81IjvZjrZysDUNY99fQIWXuYAyTzC5fu7WmCEVGk2pRdSlZuyNLuCgltPHKvItcB0A46qjFHZLGqxaobmzPNXQuuiXb/beYulR1lDSrfQeMOxjD1KDGor03MwwywZmvnKsF4yrwp+OTUuOgw9NvyILOSAiU+WX51DonJCuEqPnoarq9YTSIUnY1wI5P8fcwj2LPLwM3nx/O+v1f1SZj7WQug0LXBkbM/gaS1uTrqEZ42hgIGoLsNX2FTdxFt/v+6ylx3cPrZHbK7IkQg0R6qWPIzs=
+      bucket: eu-west-1-stg-streamr-vault
+      key: broker/releases/ee.tar
+      application: staging-broker-codedeploy
+      deployment_group: staging-broker-deployment-group
+      region: eu-west-1
   - stage: Build docker (dev)
     if: tag IS blank
     env:
@@ -23,7 +53,3 @@ jobs:
     deploy:
     - provider: script
       script: bash .travis_scripts/deploy_docker.sh staging
-env:
-  global:
-  - secure: HyoJAnz2gKMV5eVHtUtu/l2Lvwq1r2vyMD8JcpTPly+YHRuTEmiLBSxGfB4guECOoNYydN+NPvjZdhUShuWKX5kX2ScjjT00w+uueKP4ws87+gMENFSYVfk27v0KXsj1suFywW8uvKBZ6Au/WyLOB+6o4VjhEAKq+Du7CpUZ+yfhl1blw+4snSqhbdBDlpmEHMJL2Po3PSRlkiagksDlOOWtnB9o5ngeeLMqv8Vwh55svYbkKGiJx1e4fKfafs4zUq0+HYU/IuGpmZxgiMnazN90fHUwpn81IjTx7t3wH3RTvHPzOFiwsro6CMabDMaQcJKxmFoACMKyRbZQAf2Yc9caNHKCkg65KHQu5Blw1wKnbuBrNvcTZBInqRN/BB+h0h3pPm0FWM99qNtAp4YmbLC5Sg+YizyAvRIGDP8mG4OMhxvpuSX8U+cK2dkjVy6rnGztFWHe73pXnwrmfRlFxjMx5YGPyT/gEih2nhmRnfcO8uxZj/xUn2x0Rkr7SrE9hjWYMwfJrq2SYRPEpv3cj1/GFpcYN9A0kZXfKdoEvEmyMdVQRV8Vp6iSWxowyysiZ3iy1e8Y4NMOROjzOB5JvOB4Fhum1cR0CTrYVHmprkcQtEycg6YhKEZb9YRWWsJtC9qgH/zvdDsmuCsjcwsP1UBeivJgxucPxPXNJq5bigE=
-  - secure: l7hkGJ6R4pf9Ih82N01uqq3dANBamKYZ6qSWMmYZLdWDA2LqMuwXgNtc1etps/cs//DaTPQAT11D1+XU/bb6kURDAw55kJlC5mV5epkx2UUEv8vkieI0BJwH83HeZaCBHWVbxRqGCE7yGY/zGS95esdzLTxXQildqqP1YeBpoBC4J4kU18RNmUhLqPXgg/rP+y96CVreKEMKi8oH2mEXlilXJrLE6hY8qkvlcxvhEfp1SpsG5SuD+noglqPARPhBN069PIGnEOgZ1+RKUgPcslWA0qbhAyCo41FsC7NuPhlSoXCPxSziaqiG4k/m9HQPGELsFi2p0DqjhWYOt5C4EVmidqFXSKlbO5ho48+YieVqL0/nT5g9FZgaUTPRGzgcXE4fyinpzNce5vZDA0Ka4emYApMjAM8Ng9wpTWUu37rEz9vB40+XdBkrH1J1Ow0onIsxyJiQt/S1OUg1rrgzDHpe829WGjvW1EALPoQ1pon//ZTIc0lAgEuuBf5GaOaW/LsLIvuw87cIKhWwcOfF6qOnvoa5byQjMlzZTIKiqv71ZPZJ2sUlo+0tRr51TNxlW8CodPp2hAsNyM9kpK54vEJS6NsYSvLekmem97EK3nub6qO7I+fHSLsIdSrtO7lmNHJu8Egc4tnpx0cyFSAxaVnhPsU8eCN/wGMGEwBtq4Q=
