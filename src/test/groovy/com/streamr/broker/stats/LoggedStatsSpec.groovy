@@ -55,12 +55,14 @@ class LoggedStatsSpec extends Specification {
 		loggedStats.report()
 
 		then:
+		// These numbers depend on the size of the version of StreamrBinaryMessage currently used. If a new version with
+		// a new size is created, the following will fail. These numbers should be updated.
 		recordedLogs == [
 			"Statistics logger started. Logging interval is 1 sec(s).",
 			"\n\tLast timestamp ${new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(0))}\n" +
-				"\tBackpressure 0.166 kB / 4 events\n" +
-				"\tRead throughput 0.249 kB/s or 6 event/s\n" +
-				"\tWrite throughput 0.083 kB/s or 2 event/s\n" +
+				"\tBackpressure 0.17 kB / 4 events\n" +
+				"\tRead throughput 0.255 kB/s or 6 event/s\n" +
+				"\tWrite throughput 0.085 kB/s or 2 event/s\n" +
 				"\tWrite errors 1",
 			"No new data."
 		]
