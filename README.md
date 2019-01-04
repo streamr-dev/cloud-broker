@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/streamr-dev/cloud-broker.svg?branch=master)](https://travis-ci.com/streamr-dev/cloud-broker)
+
 # Cloud Broker
 An essential service of the Streamr cloud architecture responsible for message brokering. Listens to Apache Kafka for
 new data and forwards it to Apache Cassandra (for long-term persistence) and Redis (for immediate consumption
