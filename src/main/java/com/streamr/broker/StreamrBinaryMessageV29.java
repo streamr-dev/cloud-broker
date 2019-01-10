@@ -4,7 +4,8 @@ import javax.xml.bind.DatatypeConverter;
 import java.nio.ByteBuffer;
 import java.util.Date;
 
-public class StreamrBinaryMessageV29 extends StreamrBinaryMessageV28 {
+public class StreamrBinaryMessageV29 extends StreamrBinaryMessage {
+    public static final byte VERSION = 29; //0x1D
 
     public enum SignatureType {
         SIGNATURE_TYPE_NONE ((byte) 0),
@@ -25,30 +26,20 @@ public class StreamrBinaryMessageV29 extends StreamrBinaryMessageV28 {
     private final byte[] addressBytes;
     private final byte[] signatureBytes;
 
-    protected StreamrBinaryMessageV29(ByteBuffer bb) {
-        super(bb);
-        byte signatureTypeByte = bb.get();
-        if (signatureTypeByte == SignatureType.SIGNATURE_TYPE_ETH.getId()) {
-            signatureType = SignatureType.SIGNATURE_TYPE_ETH;
-            addressBytes = new byte[20];
-            bb.get(addressBytes);
-            signatureBytes = new byte[65];
-            bb.get(signatureBytes);
-        } else if (signatureTypeByte == SignatureType.SIGNATURE_TYPE_NONE.getId()) {
-            signatureType = SignatureType.SIGNATURE_TYPE_NONE;
-            addressBytes = null;
-            signatureBytes = null;
-        } else {
-            throw new IllegalArgumentException("Unknown signature type: "+signatureTypeByte);
-        }
-    }
-
     public StreamrBinaryMessageV29(String streamId, int partition, long timestamp, int ttl, byte contentType, byte[] content,
                                    SignatureType signatureType, String address, String signature) {
-        super(streamId, partition, timestamp, ttl, contentType, content);
+        super(VERSION, streamId, partition, timestamp, ttl, contentType, content);
         this.signatureType = signatureType;
         this.addressBytes = hexToBytes(address);
         this.signatureBytes = hexToBytes(signature);
+    }
+
+    public StreamrBinaryMessageV29(String streamId, int partition, long timestamp, int ttl, byte contentType, byte[] content,
+                                   SignatureType signatureType, byte[] addressBytes, byte[] signatureBytes) {
+        super(VERSION, streamId, partition, timestamp, ttl, contentType, content);
+        this.signatureType = signatureType;
+        this.addressBytes = addressBytes;
+        this.signatureBytes = signatureBytes;
     }
 
     @Override
@@ -72,11 +63,6 @@ public class StreamrBinaryMessageV29 extends StreamrBinaryMessageV28 {
         } else {
             throw new IllegalArgumentException("Unknown signature type: "+signatureType);
         }
-    }
-
-    @Override
-    public byte getVersion() {
-        return VERSION_SIGNED;
     }
 
     public SignatureType getSignatureType() {

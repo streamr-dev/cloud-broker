@@ -3,6 +3,7 @@ package com.streamr.broker.kafka
 import com.streamr.broker.StreamrBinaryMessage
 import com.streamr.broker.StreamrBinaryMessageV28
 import com.streamr.broker.StreamrBinaryMessageV29
+import com.streamr.broker.StreamrBinaryMessageV30
 import com.streamr.broker.StreamrBinaryMessageWithKafkaMetadata
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import spock.lang.Specification
@@ -18,6 +19,33 @@ class KafkaRecordTransformerSpec extends Specification {
 			666666666,
 			10,
 			StreamrBinaryMessage.CONTENT_TYPE_STRING
+		)
+		ConsumerRecord<String, byte[]> record = new ConsumerRecord<>("streamId", 7, 15, null, msg.toBytes())
+
+		when:
+		StreamrBinaryMessageWithKafkaMetadata msgWithMetaData = transformer.transform(record)
+
+		then: "base message unaffected"
+		msgWithMetaData.getStreamrBinaryMessage().toBytes() == msg.toBytes()
+
+		and: "meta data attached"
+		msgWithMetaData.offset == 15
+		msgWithMetaData.previousOffset == null
+		msgWithMetaData.kafkaPartition == 7
+	}
+
+	void "transform() with version 30 returns StreamrBinaryMessageWithKafkaMetadata with metadata attached"() {
+		StreamrBinaryMessage msg = new StreamrBinaryMessageV30(
+				"streamId",
+				5,
+				666666666,
+				0,
+				"0xF915eD664e43C50eB7b9Ca7CfEB992703eDe55c4",
+				10,
+				StreamrBinaryMessage.CONTENT_TYPE_STRING,
+				"".bytes,
+				StreamrBinaryMessageV29.SignatureType.SIGNATURE_TYPE_ETH,
+				'0xcb1fa20f2f8e75f27d3f171d236c071f0de39e4b497c51b390306fc6e7e112bb415ecea1bd093320dd91fd91113748286711122548c52a15179822a014dc14931b',
 		)
 		ConsumerRecord<String, byte[]> record = new ConsumerRecord<>("streamId", 7, 15, null, msg.toBytes())
 

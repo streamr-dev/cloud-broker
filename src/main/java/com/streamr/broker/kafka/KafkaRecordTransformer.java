@@ -1,6 +1,7 @@
 package com.streamr.broker.kafka;
 
 import com.streamr.broker.StreamrBinaryMessage;
+import com.streamr.broker.StreamrBinaryMessageFactory;
 import com.streamr.broker.StreamrBinaryMessageWithKafkaMetadata;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 
@@ -12,7 +13,7 @@ class KafkaRecordTransformer {
 	private final Map<String, Long> offsetByStream = new HashMap<>();
 
 	StreamrBinaryMessageWithKafkaMetadata transform(ConsumerRecord<String, byte[]> record) {
-		StreamrBinaryMessage streamrBinaryMessage = StreamrBinaryMessage.from(ByteBuffer.wrap(record.value()));
+		StreamrBinaryMessage streamrBinaryMessage = StreamrBinaryMessageFactory.fromBytes(ByteBuffer.wrap(record.value()));
 		Long previousOffset = offsetByStream.put(streamrBinaryMessage.getStreamId(), record.offset());
 		return new StreamrBinaryMessageWithKafkaMetadata(streamrBinaryMessage, record.partition(), record.offset(),
 			previousOffset);

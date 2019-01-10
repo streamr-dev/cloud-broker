@@ -64,7 +64,7 @@ class CassandraStatementBuilderSpec extends Specification {
 		rs.first().getLong("kafka_offset") == 51248
 		rs.first().getLong("previous_offset") == 51247
 		rs.first().getTimestamp("ts") == new Date(timestamp)
-		rs.first().getBytes("payload") == ByteBuffer.wrap(message.toBytes())
+		rs.first().getBytes("payload") == ByteBuffer.wrap(message.toBytesWithKafkaMetadata())
 	}
 
 	void "eventInsert() with TTL inserts disappearing data to Cassandra"() {
@@ -98,7 +98,7 @@ class CassandraStatementBuilderSpec extends Specification {
 		rs.first().getLong("kafka_offset") == 51249
 		rs.first().getLong("previous_offset") == 51248
 		rs.first().getTimestamp("ts") == new Date(timestamp)
-		rs.first().getBytes("payload") == ByteBuffer.wrap(message.toBytes())
+		rs.first().getBytes("payload") == ByteBuffer.wrap(message.toBytesWithKafkaMetadata())
 
 
 		when:
