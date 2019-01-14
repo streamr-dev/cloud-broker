@@ -23,7 +23,7 @@ class RedisReporterSpec extends Specification {
 		0,
 		StreamrBinaryMessage.CONTENT_TYPE_STRING,
 		"hello world".bytes,
-		StreamrBinaryMessageV29.SignatureType.SIGNATURE_TYPE_NONE,
+		StreamrBinaryMessage.SignatureType.SIGNATURE_TYPE_NONE,
 		"",
 		""
 	)

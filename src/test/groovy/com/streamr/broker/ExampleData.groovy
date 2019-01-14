@@ -12,7 +12,7 @@ class ExampleData {
 			1,
 			StreamrBinaryMessage.CONTENT_TYPE_STRING,
 			"first message".bytes,
-			StreamrBinaryMessageV29.SignatureType.SIGNATURE_TYPE_ETH,
+			StreamrBinaryMessage.SignatureType.SIGNATURE_TYPE_ETH,
 			'0xcb1fa20f2f8e75f27d3f171d236c071f0de39e4b497c51b390306fc6e7e112bb415ecea1bd093320dd91fd91113748286711122548c52a15179822a014dc14931b',
 	)
 	static final StreamrBinaryMessageWithKafkaMetadata MESSAGE_1 = new StreamrBinaryMessageWithKafkaMetadata(
@@ -32,7 +32,7 @@ class ExampleData {
 			1,
 			StreamrBinaryMessage.CONTENT_TYPE_STRING,
 			"second message".bytes,
-			StreamrBinaryMessageV29.SignatureType.SIGNATURE_TYPE_ETH,
+			StreamrBinaryMessage.SignatureType.SIGNATURE_TYPE_ETH,
 			'0xcb1fa20f2f8e75f27d3f171d236c071f0de39e4b497c51b390306fc6e7e112bb415ecea1bd093320dd91fd91113748286711122548c52a15179822a014dc14931b',
 	)
 	static final StreamrBinaryMessageWithKafkaMetadata MESSAGE_2 = new StreamrBinaryMessageWithKafkaMetadata(
@@ -52,7 +52,7 @@ class ExampleData {
 			1,
 			StreamrBinaryMessage.CONTENT_TYPE_STRING,
 			"third message".bytes,
-			StreamrBinaryMessageV29.SignatureType.SIGNATURE_TYPE_ETH,
+			StreamrBinaryMessage.SignatureType.SIGNATURE_TYPE_ETH,
 			'0xcb1fa20f2f8e75f27d3f171d236c071f0de39e4b497c51b390306fc6e7e112bb415ecea1bd093320dd91fd91113748286711122548c52a15179822a014dc14931b',
 	)
 	static final StreamrBinaryMessageWithKafkaMetadata MESSAGE_3 = new StreamrBinaryMessageWithKafkaMetadata(

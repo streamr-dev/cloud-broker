@@ -1,7 +1,5 @@
 package com.streamr.broker;
 
-import com.streamr.broker.StreamrBinaryMessageV29.SignatureType;
-
 import javax.xml.bind.DatatypeConverter;
 import java.nio.ByteBuffer;
 import java.util.Date;
@@ -13,6 +11,7 @@ public class StreamrBinaryMessageV30 extends StreamrBinaryMessage {
     private final long prevTimestamp;
     private final int prevSequenceNumber;
     private final SignatureType signatureType;
+    private final String publisherId;
     private final byte[] publisherIdBytes;
     private final byte[] signatureBytes;
 
@@ -24,7 +23,8 @@ public class StreamrBinaryMessageV30 extends StreamrBinaryMessage {
         this.prevTimestamp = prevTimestamp;
         this.prevSequenceNumber = prevSequenceNumber;
         this.signatureType = signatureType;
-        this.publisherIdBytes = hexToBytes(publisherId);
+        this.publisherId = publisherId;
+        this.publisherIdBytes = publisherIdToBytes(publisherId);
         this.signatureBytes = hexToBytes(signature);
     }
 
@@ -36,6 +36,7 @@ public class StreamrBinaryMessageV30 extends StreamrBinaryMessage {
         this.prevTimestamp = prevTimestamp;
         this.prevSequenceNumber = prevSequenceNumber;
         this.signatureType = signatureType;
+        this.publisherId = bytesToPublisherId(publisherIdBytes);
         this.publisherIdBytes = publisherIdBytes;
         this.signatureBytes = signatureBytes;
     }
@@ -54,7 +55,11 @@ public class StreamrBinaryMessageV30 extends StreamrBinaryMessage {
         bb.put((byte) partition); // 1 byte
         bb.putLong(timestamp); // 8 bytes
         bb.putInt(sequenceNumber); // 4 bytes
-        bb.put(publisherIdBytes); // 20 bytes
+        if (publisherIdBytes.length > 255) {
+            throw new IllegalArgumentException("Publisher id too long: "+publisherId+", length "+publisherIdBytes.length);
+        }
+        bb.put((byte) publisherIdBytes.length); // 1 byte
+        bb.put(publisherIdBytes);
         bb.putLong(prevTimestamp); // 8 bytes
         bb.putInt(prevSequenceNumber); // 4 bytes
         bb.putInt(ttl); // 4 bytes
@@ -69,8 +74,8 @@ public class StreamrBinaryMessageV30 extends StreamrBinaryMessage {
 
     @Override
     public int sizeInBytes() {
-        // add sequenceNumber, publisherId, prevTimestamp, prevSequenceNumber and signatureType
-        int size = super.sizeInBytes() + 4 + 20 + 8 + 4 + 1;
+        // add sequenceNumber, publisherIdLength, publisherId, prevTimestamp, prevSequenceNumber and signatureType
+        int size = super.sizeInBytes() + 4 + 1 + publisherIdBytes.length + 8 + 4 + 1;
         if (signatureType == SignatureType.SIGNATURE_TYPE_NONE) {
             return size;
         } else if (signatureType == SignatureType.SIGNATURE_TYPE_ETH) {
@@ -90,7 +95,7 @@ public class StreamrBinaryMessageV30 extends StreamrBinaryMessage {
     }
 
     public String getPublisherId() {
-        return bytesToHex(publisherIdBytes);
+        return bytesToPublisherId(publisherIdBytes);
     }
 
     public long getPrevTimestamp() {
@@ -103,6 +108,26 @@ public class StreamrBinaryMessageV30 extends StreamrBinaryMessage {
 
     public String getSignature() {
         return bytesToHex(signatureBytes);
+    }
+
+    private byte[] publisherIdToBytes(String publisherId) {
+        if (publisherId == null) {
+            return null;
+        }
+        if (publisherId.startsWith("0x")) { // publisherId is an Ethereum address
+            return DatatypeConverter.parseHexBinary(publisherId.substring(2));
+        }
+        return publisherId.getBytes(utf8); // publisherId is a String name
+    }
+
+    private String bytesToPublisherId(byte[] bytes) {
+        if (bytes == null) {
+            return null;
+        }
+        if (bytes.length == 20) { // is an Ethereum address
+            return "0x" + DatatypeConverter.printHexBinary(bytes);
+        }
+        return new String(bytes, utf8); // is a String name
     }
 
     private byte[] hexToBytes(String s) {

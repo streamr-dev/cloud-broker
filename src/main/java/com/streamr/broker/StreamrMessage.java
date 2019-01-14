@@ -8,7 +8,7 @@ public class StreamrMessage {
     public final Map payload;
     private final int partition;
     private final String streamId;
-    private final StreamrBinaryMessageV29.SignatureType signatureType;
+    private final StreamrBinaryMessage.SignatureType signatureType;
     private final String address;
     private final String signature;
 
@@ -17,13 +17,13 @@ public class StreamrMessage {
         this.payload = content;
         this.streamId = streamId;
         this.partition = partition;
-        this.signatureType = StreamrBinaryMessageV29.SignatureType.SIGNATURE_TYPE_NONE;
+        this.signatureType = StreamrBinaryMessage.SignatureType.SIGNATURE_TYPE_NONE;
         this.address = null;
         this.signature = null;
     }
 
     public StreamrMessage(String streamId, int partition, Date timestamp, Map content,
-                          StreamrBinaryMessageV29.SignatureType signatureType, String address, String signature) {
+                          StreamrBinaryMessage.SignatureType signatureType, String address, String signature) {
         this.timestamp = timestamp;
         this.payload = content;
         this.streamId = streamId;

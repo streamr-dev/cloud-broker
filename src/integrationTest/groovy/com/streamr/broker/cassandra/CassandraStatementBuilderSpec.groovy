@@ -38,7 +38,7 @@ class CassandraStatementBuilderSpec extends Specification {
 		byte contentType, byte[] content, int kafkaPartition, long offset, long previousOffset) {
 		StreamrBinaryMessageV29 msg = new StreamrBinaryMessageV29(
 			streamId, streamPartition, timestamp, ttl, contentType, content,
-			StreamrBinaryMessageV29.SignatureType.SIGNATURE_TYPE_NONE, "", ""
+			StreamrBinaryMessage.SignatureType.SIGNATURE_TYPE_NONE, "", ""
 		)
 		return new StreamrBinaryMessageWithKafkaMetadata(msg, kafkaPartition, offset, previousOffset)
 	}

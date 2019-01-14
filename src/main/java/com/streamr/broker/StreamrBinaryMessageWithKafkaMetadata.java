@@ -83,5 +83,8 @@ public class StreamrBinaryMessageWithKafkaMetadata {
 		return bb.array();
 	}
 
-
+	@Override
+	public String toString() {
+		return this.msg.toString();
+	}
 }
