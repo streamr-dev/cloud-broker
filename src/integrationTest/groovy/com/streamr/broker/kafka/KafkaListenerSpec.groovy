@@ -3,8 +3,6 @@ package com.streamr.broker.kafka
 import com.streamr.broker.Config
 import com.streamr.broker.KafkaDataProducer
 import com.streamr.broker.StreamrBinaryMessage
-import com.streamr.broker.StreamrBinaryMessageV28
-import com.streamr.broker.StreamrBinaryMessageV29
 import com.streamr.broker.StreamrBinaryMessageV30
 import com.streamr.broker.StreamrBinaryMessageWithKafkaMetadata
 import spock.lang.Specification

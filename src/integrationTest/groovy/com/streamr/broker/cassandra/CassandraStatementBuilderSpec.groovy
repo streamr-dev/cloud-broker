@@ -4,7 +4,7 @@ import com.datastax.driver.core.Cluster
 import com.datastax.driver.core.Session
 import com.streamr.broker.Config
 import com.streamr.broker.StreamrBinaryMessage
-import com.streamr.broker.StreamrBinaryMessageV29
+import com.streamr.broker.StreamrBinaryMessageV30
 import com.streamr.broker.StreamrBinaryMessageWithKafkaMetadata
 import groovy.transform.CompileStatic
 import spock.lang.Shared
@@ -36,9 +36,10 @@ class CassandraStatementBuilderSpec extends Specification {
 
 	StreamrBinaryMessageWithKafkaMetadata buildMessage(String streamId, int streamPartition, long timestamp, int ttl,
 		byte contentType, byte[] content, int kafkaPartition, long offset, long previousOffset) {
-		StreamrBinaryMessageV29 msg = new StreamrBinaryMessageV29(
-			streamId, streamPartition, timestamp, ttl, contentType, content,
-			StreamrBinaryMessage.SignatureType.SIGNATURE_TYPE_NONE, "", ""
+		StreamrBinaryMessageV30 msg = new StreamrBinaryMessageV30(
+			streamId, streamPartition, timestamp, 0, "publisherId",
+			System.currentTimeMillis(), 0, ttl, contentType, content,
+			StreamrBinaryMessage.SignatureType.SIGNATURE_TYPE_NONE, ""
 		)
 		return new StreamrBinaryMessageWithKafkaMetadata(msg, kafkaPartition, offset, previousOffset)
 	}
