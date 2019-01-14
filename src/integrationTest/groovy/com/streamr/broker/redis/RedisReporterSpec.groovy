@@ -8,6 +8,7 @@ import com.lambdaworks.redis.pubsub.RedisPubSubListener
 import com.lambdaworks.redis.pubsub.api.sync.RedisPubSubCommands
 import com.streamr.broker.Config
 import com.streamr.broker.StreamrBinaryMessage
+import com.streamr.broker.StreamrBinaryMessageV29
 import com.streamr.broker.StreamrBinaryMessageWithKafkaMetadata
 import com.streamr.broker.stats.LoggedStats
 import com.streamr.broker.stats.Stats
@@ -15,13 +16,19 @@ import spock.lang.Specification
 import spock.util.concurrent.BlockingVariable
 
 class RedisReporterSpec extends Specification {
-	StreamrBinaryMessageWithKafkaMetadata testMessage = new StreamrBinaryMessageWithKafkaMetadata(
+	StreamrBinaryMessageV29 msg = new StreamrBinaryMessageV29(
 		"streamId",
 		0,
 		System.currentTimeMillis(),
 		0,
 		StreamrBinaryMessage.CONTENT_TYPE_STRING,
 		"hello world".bytes,
+		StreamrBinaryMessageV29.SignatureType.SIGNATURE_TYPE_NONE,
+		"",
+		""
+	)
+	StreamrBinaryMessageWithKafkaMetadata testMessage = new StreamrBinaryMessageWithKafkaMetadata(
+		msg,
 		1,
 		10561,
 		10560

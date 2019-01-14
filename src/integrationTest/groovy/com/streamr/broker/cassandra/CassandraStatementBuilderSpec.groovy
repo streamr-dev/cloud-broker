@@ -4,6 +4,7 @@ import com.datastax.driver.core.Cluster
 import com.datastax.driver.core.Session
 import com.streamr.broker.Config
 import com.streamr.broker.StreamrBinaryMessage
+import com.streamr.broker.StreamrBinaryMessageV29
 import com.streamr.broker.StreamrBinaryMessageWithKafkaMetadata
 import groovy.transform.CompileStatic
 import spock.lang.Shared
@@ -33,9 +34,18 @@ class CassandraStatementBuilderSpec extends Specification {
 		cluster?.close()
 	}
 
+	StreamrBinaryMessageWithKafkaMetadata buildMessage(String streamId, int streamPartition, long timestamp, int ttl,
+		byte contentType, byte[] content, int kafkaPartition, long offset, long previousOffset) {
+		StreamrBinaryMessageV29 msg = new StreamrBinaryMessageV29(
+			streamId, streamPartition, timestamp, ttl, contentType, content,
+			StreamrBinaryMessageV29.SignatureType.SIGNATURE_TYPE_NONE, "", ""
+		)
+		return new StreamrBinaryMessageWithKafkaMetadata(msg, kafkaPartition, offset, previousOffset)
+	}
+
 	void "eventInsert() inserts expected data to Cassandra"() {
 		def timestamp = System.currentTimeMillis()
-		def message = new StreamrBinaryMessageWithKafkaMetadata(
+		def message = buildMessage(
 			"cassandraStatementBuilderSpec-streamId",
 			0,
 			timestamp,
@@ -69,7 +79,7 @@ class CassandraStatementBuilderSpec extends Specification {
 
 	void "eventInsert() with TTL inserts disappearing data to Cassandra"() {
 		def timestamp = System.currentTimeMillis()
-		def message = new StreamrBinaryMessageWithKafkaMetadata(
+		def message = buildMessage(
 			"cassandraStatementBuilderSpec-streamId",
 			0,
 			timestamp,
@@ -115,7 +125,7 @@ class CassandraStatementBuilderSpec extends Specification {
 
 	void "tsInsert() inserts expected data to Cassandra"() {
 		def timestamp = System.currentTimeMillis()
-		def message = new StreamrBinaryMessageWithKafkaMetadata(
+		def message = buildMessage(
 			"cassandraStatementBuilderSpec-streamId",
 			0,
 			timestamp,
@@ -146,7 +156,7 @@ class CassandraStatementBuilderSpec extends Specification {
 
 	void "tsInsert() with TTL inserts disappearing data to Cassandra"() {
 		def timestamp = System.currentTimeMillis()
-		def message = new StreamrBinaryMessageWithKafkaMetadata(
+		def message = buildMessage(
 			"cassandraStatementBuilderSpec-streamId",
 			0,
 			timestamp,
@@ -188,7 +198,7 @@ class CassandraStatementBuilderSpec extends Specification {
 
 	void "eventInsertBatch() inserts expected (disappearing and persistent) data to Cassandra"() {
 		def timestamp = System.currentTimeMillis()
-		def msg1 = new StreamrBinaryMessageWithKafkaMetadata(
+		def msg1 = buildMessage(
 			"cassandraStatementBuilderSpec-streamId",
 			0,
 			timestamp,
@@ -199,7 +209,7 @@ class CassandraStatementBuilderSpec extends Specification {
 			51250,
 			51247
 		)
-		def msg2 = new StreamrBinaryMessageWithKafkaMetadata(
+		def msg2 = buildMessage(
 			"cassandraStatementBuilderSpec-streamId",
 			0,
 			timestamp + 60000,
@@ -210,7 +220,7 @@ class CassandraStatementBuilderSpec extends Specification {
 			51255,
 			51250
 		)
-		def msg3 = new StreamrBinaryMessageWithKafkaMetadata(
+		def msg3 = buildMessage(
 			"cassandraStatementBuilderSpec-streamId",
 			0,
 			timestamp+ 120000,
@@ -246,7 +256,7 @@ class CassandraStatementBuilderSpec extends Specification {
 
 	void "tsBatchInsert() inserts expected (disappearing and persistent) data to Cassandra"() {
 		def timestamp = System.currentTimeMillis()
-		def msg1 = new StreamrBinaryMessageWithKafkaMetadata(
+		def msg1 = buildMessage(
 			"cassandraStatementBuilderSpec-streamId",
 			0,
 			timestamp,
@@ -257,7 +267,7 @@ class CassandraStatementBuilderSpec extends Specification {
 			51250,
 			51247
 		)
-		def msg2 = new StreamrBinaryMessageWithKafkaMetadata(
+		def msg2 = buildMessage(
 			"cassandraStatementBuilderSpec-streamId",
 			0,
 			timestamp + 60000,
@@ -268,7 +278,7 @@ class CassandraStatementBuilderSpec extends Specification {
 			51255,
 			51250
 		)
-		def msg3 = new StreamrBinaryMessageWithKafkaMetadata(
+		def msg3 = buildMessage(
 			"cassandraStatementBuilderSpec-streamId",
 			0,
 			timestamp+ 120000,
@@ -304,7 +314,7 @@ class CassandraStatementBuilderSpec extends Specification {
 
 	void "tsBatchInsert() avoids writing sub-second entries to Cassandra"() {
 		def timestamp = System.currentTimeMillis()
-		def msg1 = new StreamrBinaryMessageWithKafkaMetadata(
+		def msg1 = buildMessage(
 			"cassandraStatementBuilderSpec-streamId",
 			0,
 			timestamp,
@@ -315,7 +325,7 @@ class CassandraStatementBuilderSpec extends Specification {
 			51250,
 			51247
 		)
-		def msg2 = new StreamrBinaryMessageWithKafkaMetadata(
+		def msg2 = buildMessage(
 			"cassandraStatementBuilderSpec-streamId",
 			0,
 			timestamp + 500,
@@ -326,7 +336,7 @@ class CassandraStatementBuilderSpec extends Specification {
 			51255,
 			51250
 		)
-		def msg3 = new StreamrBinaryMessageWithKafkaMetadata(
+		def msg3 = buildMessage(
 			"cassandraStatementBuilderSpec-streamId",
 			0,
 			timestamp + 999,

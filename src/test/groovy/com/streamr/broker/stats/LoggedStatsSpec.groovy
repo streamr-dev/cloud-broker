@@ -60,9 +60,9 @@ class LoggedStatsSpec extends Specification {
 		recordedLogs == [
 			"Statistics logger started. Logging interval is 1 sec(s).",
 			"\n\tLast timestamp ${new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(0))}\n" +
-				"\tBackpressure 0.526 kB / 4 events\n" +
-				"\tRead throughput 0.789 kB/s or 6 event/s\n" +
-				"\tWrite throughput 0.263 kB/s or 2 event/s\n" +
+				"\tBackpressure 0.574 kB / 4 events\n" +
+				"\tRead throughput 0.861 kB/s or 6 event/s\n" +
+				"\tWrite throughput 0.287 kB/s or 2 event/s\n" +
 				"\tWrite errors 1",
 			"No new data."
 		]

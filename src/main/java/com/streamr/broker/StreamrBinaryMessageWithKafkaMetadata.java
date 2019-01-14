@@ -56,27 +56,6 @@ public class StreamrBinaryMessageWithKafkaMetadata {
 		this.kafkaPartition = kafkaPartition;
 	}
 
-	/**
-	 * Creates a new StreamrBinaryMessageWithKafkaMetadata using given values.
-	 */
-	public StreamrBinaryMessageWithKafkaMetadata(String streamId, int streamPartition, long timestamp, int ttl, byte contentType, byte[] content, int kafkaPartition, long offset, Long previousOffset) {
-		msg = new StreamrBinaryMessageV29(streamId, streamPartition, timestamp, ttl, contentType, content, StreamrBinaryMessageV29.SignatureType.SIGNATURE_TYPE_NONE, (String) null, null);
-		this.offset = offset;
-		this.previousOffset = previousOffset;
-		this.kafkaPartition = kafkaPartition;
-	}
-
-	/**
-	 * Creates a new StreamrBinaryMessageWithKafkaMetadata using given values.
-	 */
-	public StreamrBinaryMessageWithKafkaMetadata(String streamId, int streamPartition, long timestamp, int ttl, byte contentType,
-												 byte[] content, StreamrBinaryMessageV29.SignatureType signatureType, String address, String signature, int kafkaPartition, long offset, Long previousOffset) {
-		msg = new StreamrBinaryMessageV29(streamId, streamPartition, timestamp, ttl, contentType, content, signatureType, address, signature);
-		this.offset = offset;
-		this.previousOffset = previousOffset;
-		this.kafkaPartition = kafkaPartition;
-	}
-
 	public StreamrBinaryMessage getStreamrBinaryMessage() {
 		return msg;
 	}

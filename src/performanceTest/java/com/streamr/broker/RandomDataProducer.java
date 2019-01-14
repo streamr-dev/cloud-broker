@@ -17,12 +17,18 @@ class RandomDataProducer {
 	private long totalBytes = 0;
 
 	StreamrBinaryMessageWithKafkaMetadata provideMessage(long offset) {
-		return new StreamrBinaryMessageWithKafkaMetadata(STREAM_IDS[random2.nextInt(STREAM_IDS.length)],
-			0,
-			System.currentTimeMillis(),
-			1000,
-			StreamrBinaryMessage.CONTENT_TYPE_STRING,
-			generatePayload(),
+		StreamrBinaryMessageV29 msg = new StreamrBinaryMessageV29(
+				STREAM_IDS[random2.nextInt(STREAM_IDS.length)],
+				0,
+				System.currentTimeMillis(),
+				1000,
+				StreamrBinaryMessage.CONTENT_TYPE_STRING,
+				generatePayload(),
+				StreamrBinaryMessageV29.SignatureType.SIGNATURE_TYPE_NONE,
+				"",
+				""
+		);
+		return new StreamrBinaryMessageWithKafkaMetadata(msg,
 			0,
 			offset,
 			offset - 1);

@@ -41,6 +41,8 @@ class KafkaRecordTransformerSpec extends Specification {
 				666666666,
 				0,
 				"0xF915eD664e43C50eB7b9Ca7CfEB992703eDe55c4",
+				666666600,
+				0,
 				10,
 				StreamrBinaryMessage.CONTENT_TYPE_STRING,
 				"".bytes,
