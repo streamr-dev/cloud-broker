@@ -1,8 +1,11 @@
 package com.streamr.broker;
 
+import com.streamr.client.protocol.message_layer.StreamMessage;
+import com.streamr.client.protocol.message_layer.StreamMessageV29;
+
 import javax.xml.bind.DatatypeConverter;
+import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Date;
 
 public class StreamrBinaryMessageV29 extends StreamrBinaryMessage {
     public static final byte VERSION = 29; //0x1D
@@ -80,7 +83,8 @@ public class StreamrBinaryMessageV29 extends StreamrBinaryMessage {
     }
 
     @Override
-    public StreamrMessage toStreamrMessage() {
-        return new StreamrMessage(getStreamId(), getPartition(), new Date(getTimestamp()), getContentJSON(), getSignatureType(), getAddress(), getSignature());
+    public StreamMessageV29 toStreamrMessage(Long offset, Long previousOffset) throws IOException {
+        return new StreamMessageV29(streamId, partition, timestamp, ttl, offset, previousOffset, StreamMessage.ContentType.fromId(contentType), toString(),
+                StreamMessage.SignatureType.fromId(signatureType.getId()), getAddress(), getSignature());
     }
 }

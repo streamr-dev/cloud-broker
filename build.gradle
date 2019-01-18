@@ -3,6 +3,7 @@ version '1.0-SNAPSHOT'
 
 buildscript {
 	repositories {
+		mavenLocal()
 		jcenter()
 		maven {
 			url "https://plugins.gradle.org/m2/"
@@ -16,6 +17,7 @@ buildscript {
 
 apply plugin: 'java'
 apply plugin: 'groovy'
+apply plugin: 'maven-publish'
 apply plugin: 'com.github.johnrengelman.shadow' // Support for "fat" jars
 apply plugin: 'nebula.facet'                    // Healthy defaults for a standard Gradle project
 
@@ -34,6 +36,7 @@ sourceSets {
 }
 
 repositories {
+	mavenLocal()
 	mavenCentral()
 }
 
@@ -46,6 +49,7 @@ dependencies {
 	testCompile group: 'org.spockframework', name: 'spock-core', version: '1.1-groovy-2.4'
 	integrationTestCompile group: 'org.spockframework', name: 'spock-core', version: '1.1-groovy-2.4'
 	compile 'com.google.code.gson:gson:2.2.4'
+	compile group: 'com.streamr', name: 'client', version: '1.0'
 }
 
 jar {

@@ -1,8 +1,12 @@
 package com.streamr.broker;
 
+import com.streamr.client.protocol.message_layer.StreamMessage;
+import com.streamr.client.protocol.message_layer.StreamMessageV30;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Random;
 import java.util.SplittableRandom;
 import java.util.function.Function;
@@ -16,28 +20,28 @@ class RandomDataProducer {
 	private final Random random2 = new Random();
 	private long totalBytes = 0;
 
-	StreamrBinaryMessageWithKafkaMetadata provideMessage(long offset) {
-		StreamrBinaryMessageV30 msg = new StreamrBinaryMessageV30(
-				STREAM_IDS[random2.nextInt(STREAM_IDS.length)],
-				0,
-				System.currentTimeMillis(),
-				0,
-				"publisherId",
-				System.currentTimeMillis(),
-				0,
-				1000,
-				StreamrBinaryMessage.CONTENT_TYPE_STRING,
-				generatePayload(),
-				StreamrBinaryMessage.SignatureType.SIGNATURE_TYPE_NONE,
-				""
-		);
-		return new StreamrBinaryMessageWithKafkaMetadata(msg,
-			0,
-			offset,
-			offset - 1);
+	StreamMessage provideMessage(long offset) {
+		try {
+			return new StreamMessageV30(
+					STREAM_IDS[random2.nextInt(STREAM_IDS.length)],
+					0,
+					System.currentTimeMillis(),
+					0,
+					"publisherId",
+					null,
+					0,
+					StreamMessage.ContentType.CONTENT_TYPE_JSON,
+					generatePayload(),
+					StreamMessage.SignatureType.SIGNATURE_TYPE_NONE,
+					"signature"
+			);
+		} catch (IOException e) {
+			log.error(e);
+			throw new RuntimeException(e);
+		}
 	}
 
-	private byte[] generatePayload() {
+	private String generatePayload() {
 		byte[] payload;
 		if (random.nextDouble() < 0.9) {
 			payload = new byte[random.nextInt(PerformanceTestConfiguration.SMALL_PAYLOAD_RANGE[0], PerformanceTestConfiguration.SMALL_PAYLOAD_RANGE[1])];
@@ -46,7 +50,7 @@ class RandomDataProducer {
 		}
 		random2.nextBytes(payload);
 		totalBytes += payload.length;
-		return payload;
+		return new String(payload, StandardCharsets.UTF_8);
 	}
 
 	Function<QueueProducer, Runnable> producer(BrokerProcess brokerProcess) {

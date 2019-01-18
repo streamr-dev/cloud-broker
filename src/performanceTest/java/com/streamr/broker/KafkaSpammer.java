@@ -1,5 +1,6 @@
 package com.streamr.broker;
 
+import com.streamr.client.protocol.message_layer.StreamMessage;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
@@ -28,9 +29,9 @@ public class KafkaSpammer {
 	}
 
 	private void sendRandomDataToKafka() {
-		StreamrBinaryMessageWithKafkaMetadata msg = randomDataProducer.provideMessage(0);
-		String kafkaPartitionKey = msg.getStreamrBinaryMessage().getStreamId() +  "-" + msg.getStreamrBinaryMessage().getPartition();
-		ProducerRecord<String, byte[]> record = new ProducerRecord<>(dataTopic, kafkaPartitionKey, msg.getStreamrBinaryMessage().toBytes());
+		StreamMessage msg = randomDataProducer.provideMessage(0);
+		String kafkaPartitionKey = msg.getStreamId() +  "-" + msg.getStreamPartition();
+		ProducerRecord<String, byte[]> record = new ProducerRecord<>(dataTopic, kafkaPartitionKey, msg.toBytes());
 		producer.send(record);
 	}
 

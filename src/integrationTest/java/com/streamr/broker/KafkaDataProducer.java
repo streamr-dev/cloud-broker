@@ -1,5 +1,6 @@
 package com.streamr.broker;
 
+import com.streamr.client.protocol.message_layer.StreamMessage;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
@@ -28,6 +29,13 @@ public class KafkaDataProducer implements Closeable {
 
 	public void produceToKafka(StreamrBinaryMessage msg) {
 		String kafkaPartitionKey = msg.getStreamId() +  "-" + msg.getPartition();
+		ProducerRecord<String, byte[]> record = new ProducerRecord<>(dataTopic, kafkaPartitionKey, msg.toBytes());
+		producer.send(record);
+		log.info("Produced to '{}'", dataTopic);
+	}
+
+	public void produceToKafka(StreamMessage msg) {
+		String kafkaPartitionKey = msg.getStreamId() +  "-" + msg.getStreamPartition();
 		ProducerRecord<String, byte[]> record = new ProducerRecord<>(dataTopic, kafkaPartitionKey, msg.toBytes());
 		producer.send(record);
 		log.info("Produced to '{}'", dataTopic);

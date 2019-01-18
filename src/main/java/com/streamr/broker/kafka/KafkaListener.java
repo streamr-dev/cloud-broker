@@ -1,6 +1,6 @@
 package com.streamr.broker.kafka;
 
-import com.streamr.broker.StreamrBinaryMessageWithKafkaMetadata;
+import com.streamr.client.protocol.message_layer.StreamMessage;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -17,11 +17,11 @@ public class KafkaListener implements Runnable {
 	private static final Logger log = LogManager.getLogger();
 
 	private final KafkaRecordTransformer kafkaRecordTransformer = new KafkaRecordTransformer();
-	private final java.util.function.Consumer<StreamrBinaryMessageWithKafkaMetadata> callback;
+	private final java.util.function.Consumer<StreamMessage> callback;
 	private final Consumer<String, byte[]> consumer;
 
 	public KafkaListener(String zookeeperHost, String groupId, String dataTopic,
-						 java.util.function.Consumer<StreamrBinaryMessageWithKafkaMetadata> callback) {
+						 java.util.function.Consumer<StreamMessage> callback) {
 		consumer = new KafkaConsumer<>(makeKafkaConfig(zookeeperHost, groupId));
 		log.info("Kafka consumer created for '{}' in consumer group '{}'", zookeeperHost, groupId);
 		consumer.subscribe(Collections.singletonList(dataTopic));

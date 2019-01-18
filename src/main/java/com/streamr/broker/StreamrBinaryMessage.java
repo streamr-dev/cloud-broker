@@ -3,13 +3,14 @@ package com.streamr.broker;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import com.streamr.client.protocol.message_layer.StreamMessage;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.text.DateFormat;
-import java.util.Date;
 import java.util.LinkedHashMap;
 
 public abstract class StreamrBinaryMessage {
@@ -134,7 +135,5 @@ public abstract class StreamrBinaryMessage {
 		throw new RuntimeException("Unknown content type: " + getContentType());
 	}
 
-	public StreamrMessage toStreamrMessage() {
-		return new StreamrMessage(getStreamId(), getPartition(), new Date(getTimestamp()), getContentJSON());
-	}
+	public abstract StreamMessage toStreamrMessage(Long offset, Long previousOffset) throws IOException;
 }

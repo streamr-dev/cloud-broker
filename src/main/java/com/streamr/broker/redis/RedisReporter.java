@@ -6,8 +6,8 @@ import com.lambdaworks.redis.api.async.RedisAsyncCommands;
 import com.lambdaworks.redis.codec.ByteArrayCodec;
 import com.lambdaworks.redis.pubsub.api.async.RedisPubSubAsyncCommands;
 import com.streamr.broker.Reporter;
-import com.streamr.broker.StreamrBinaryMessageWithKafkaMetadata;
 import com.streamr.broker.stats.Stats;
+import com.streamr.client.protocol.message_layer.StreamMessage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -15,7 +15,6 @@ import java.nio.charset.StandardCharsets;
 
 public class RedisReporter implements Reporter {
 	private static final Logger log = LogManager.getLogger();
-	private static final int OFFSET_EXPIRATION_IN_SEC = 5;
 
 	private final RedisClient client;
 	private final RedisPubSubAsyncCommands<byte[], byte[]> pubSub;
@@ -36,11 +35,10 @@ public class RedisReporter implements Reporter {
 	}
 
 	@Override
-	public void report(StreamrBinaryMessageWithKafkaMetadata msg) {
+	public void report(StreamMessage msg) {
 		String key = formKey(msg);
-		pubSub.publish(key.getBytes(StandardCharsets.UTF_8), msg.toBytesWithKafkaMetadata())
-			.thenRunAsync(() -> stats.onWrittenToRedis(msg));
-		commands.setex(key, OFFSET_EXPIRATION_IN_SEC, String.valueOf(msg.getOffset()));
+		pubSub.publish(key.getBytes(StandardCharsets.UTF_8), msg.toBytes())
+				.thenRunAsync(() -> stats.onWrittenToRedis(msg));
 	}
 
 	@Override
@@ -50,7 +48,7 @@ public class RedisReporter implements Reporter {
 		client.shutdown();
 	}
 
-	private static String formKey(StreamrBinaryMessageWithKafkaMetadata msg) {
-		return msg.getStreamrBinaryMessage().getStreamId() + "-" + msg.getStreamrBinaryMessage().getPartition();
+	private static String formKey(StreamMessage msg) {
+		return msg.getStreamId() + "-" + msg.getStreamPartition();
 	}
 }

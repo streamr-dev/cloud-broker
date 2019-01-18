@@ -1,5 +1,6 @@
 package com.streamr.broker;
 
+import com.streamr.client.protocol.message_layer.StreamMessage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -10,10 +11,10 @@ import java.util.concurrent.BlockingQueue;
 public class QueueConsumer implements Runnable {
 	private static final Logger log = LogManager.getLogger();
 
-	private final BlockingQueue<StreamrBinaryMessageWithKafkaMetadata> queue;
+	private final BlockingQueue<StreamMessage> queue;
 	private final List<Reporter> reporters;
 
-	QueueConsumer(BlockingQueue<StreamrBinaryMessageWithKafkaMetadata> queue, Reporter... reporterArgs) {
+	QueueConsumer(BlockingQueue<StreamMessage> queue, Reporter... reporterArgs) {
 		this.queue = queue;
 		this.reporters = Arrays.asList(reporterArgs);
 	}
@@ -22,7 +23,7 @@ public class QueueConsumer implements Runnable {
 	public void run() {
 		try {
 			while (true) {
-				StreamrBinaryMessageWithKafkaMetadata msg = queue.take();
+				StreamMessage msg = queue.take();
 				for (Reporter reporter : reporters) {
 					reporter.report(msg);
 				}
