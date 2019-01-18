@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="Gradle: com.streamr:client:0.1-SNAPSHOT">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/streamr/client/0.1-SNAPSHOT/client-0.1-20190118.134012-1.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
