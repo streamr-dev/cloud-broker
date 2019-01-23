@@ -19,7 +19,6 @@ buildscript {
 
 apply plugin: 'java'
 apply plugin: 'groovy'
-apply plugin: 'maven-publish'
 apply plugin: 'com.github.johnrengelman.shadow' // Support for "fat" jars
 apply plugin: 'nebula.facet'                    // Healthy defaults for a standard Gradle project
 

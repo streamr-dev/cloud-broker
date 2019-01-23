@@ -16,12 +16,14 @@ class KafkaRecordTransformer {
 	private final Map<String, Long> offsetByStream = new HashMap<>();
 
 	StreamMessage transform(ConsumerRecord<String, byte[]> record) throws IOException {
-		String json = new String(record.value(), StandardCharsets.UTF_8);
-		if(json.startsWith("[")) { //handle version 30
+		byte[] bytes = record.value();
+ 		if (bytes.length > 0 && bytes[0] == 0x5b) { //0x5b is the UTF-8 representation of the '[' char
+ 			// starts with a '[' --> version 30
+			String json = new String(record.value(), StandardCharsets.UTF_8);
 			return StreamMessageFactory.fromJson(json);
 		}
 		// handle versions 28 and 29
-		StreamrBinaryMessage streamrBinaryMessage = StreamrBinaryMessageFactory.fromBytes(ByteBuffer.wrap(record.value()));
+		StreamrBinaryMessage streamrBinaryMessage = StreamrBinaryMessageFactory.fromBytes(ByteBuffer.wrap(bytes));
 		Long previousOffset = offsetByStream.put(streamrBinaryMessage.getStreamId(), record.offset());
 		return streamrBinaryMessage.toStreamrMessage(record.offset(), previousOffset);
 	}
