@@ -23,7 +23,7 @@ class CassandraStatementBuilder {
 			msg.getStreamId(),
 			msg.getStreamPartition(),
 			msg.getTimestampAsDate(),
-			msg.getSequenceNumber(),
+			(int) msg.getSequenceNumber(),
 			msg.getPublisherId(),
 			ByteBuffer.wrap(msg.toBytes()));
 	}
