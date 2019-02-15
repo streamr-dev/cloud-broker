@@ -28,11 +28,12 @@ class RandomDataProducer {
 					System.currentTimeMillis(),
 					0,
 					"publisherId",
-					null,
-					0,
+					"msgChainId",
+					0L,
+					0L,
 					StreamMessage.ContentType.CONTENT_TYPE_JSON,
-					generatePayload(),
-					StreamMessage.SignatureType.SIGNATURE_TYPE_NONE,
+					"{\"payload\":\""+generatePayload()+"\"}",
+					StreamMessage.SignatureType.SIGNATURE_TYPE_ETH,
 					"signature"
 			);
 		} catch (IOException e) {

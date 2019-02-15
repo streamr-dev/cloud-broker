@@ -78,6 +78,7 @@ class MainSpec extends Specification {
 				System.currentTimeMillis() + (it * 10000),
 				0,
 				"publisherId",
+				"msgChainId",
 				null,
 				0,
 				StreamMessage.ContentType.CONTENT_TYPE_JSON,

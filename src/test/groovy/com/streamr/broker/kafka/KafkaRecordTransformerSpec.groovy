@@ -17,7 +17,7 @@ class KafkaRecordTransformerSpec extends Specification {
 	KafkaRecordTransformer transformer = new KafkaRecordTransformer()
 
 	void "transform() with version 30 returns StreamMessageV30"() {
-		MessageID messageID = new MessageID("streamId", 5, 666666666, 0, "0xF915eD664e43C50eB7b9Ca7CfEB992703eDe55c4")
+		MessageID messageID = new MessageID("streamId", 5, 666666666, 0, "0xF915eD664e43C50eB7b9Ca7CfEB992703eDe55c4", "msgChainId")
 		MessageRef previousMessageRef = new MessageRef(666666600, 0)
 		StreamMessageV30 msg = new StreamMessageV30(
 				messageID,

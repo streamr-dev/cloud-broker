@@ -20,6 +20,7 @@ class RedisReporterSpec extends Specification {
 			System.currentTimeMillis(),
 			0,
 			"publisherId",
+			"msgChainId",
 			System.currentTimeMillis() - 1000,
 			0,
 			StreamMessage.ContentType.CONTENT_TYPE_JSON,

@@ -110,6 +110,7 @@ class CassandraStatementBuilderSpec extends Specification {
 				timestamp,
 				0,
 				"publisherId",
+				"msgChainId",
 				timestamp - 500,
 				0,
 				StreamMessage.ContentType.CONTENT_TYPE_JSON,
@@ -134,6 +135,7 @@ class CassandraStatementBuilderSpec extends Specification {
 		rs.first().getTimestamp("ts") == new Date(timestamp)
 		rs.first().getInt("sequence_no") == 0
 		rs.first().getString("publisher_id") == "publisherId"
+		rs.first().getString("msg_chain_id") == "msgChainId"
 		rs.first().getBytes("payload") == ByteBuffer.wrap(message.toBytes())
 	}
 
@@ -145,6 +147,7 @@ class CassandraStatementBuilderSpec extends Specification {
 				timestamp,
 				0,
 				"publisherId",
+				"msgChainId",
 				(Long) null,
 				0,
 				StreamMessage.ContentType.CONTENT_TYPE_JSON,
@@ -158,6 +161,7 @@ class CassandraStatementBuilderSpec extends Specification {
 				timestamp + 500,
 				0,
 				"publisherId",
+				"msgChainId",
 				timestamp,
 				0,
 				StreamMessage.ContentType.CONTENT_TYPE_JSON,
@@ -171,6 +175,7 @@ class CassandraStatementBuilderSpec extends Specification {
 				timestamp + 1000,
 				0,
 				"publisherId",
+				"msgChainId",
 				timestamp + 500,
 				0,
 				StreamMessage.ContentType.CONTENT_TYPE_JSON,
