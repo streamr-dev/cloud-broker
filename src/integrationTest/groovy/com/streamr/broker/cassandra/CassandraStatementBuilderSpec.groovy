@@ -62,7 +62,7 @@ class CassandraStatementBuilderSpec extends Specification {
 		rs.first().getString("id") == "cassandraStatementBuilderSpec-streamId"
 		rs.first().getInt("partition") == 0
 		rs.first().getTimestamp("ts") == new Date(timestamp)
-		rs.first().getInt("sequence_no") == 0
+		rs.first().getLong("sequence_no") == 0
 		rs.first().getString("publisher_id") == ""
 		rs.first().getBytes("payload") == ByteBuffer.wrap(message.toBytes())
 	}
@@ -97,7 +97,7 @@ class CassandraStatementBuilderSpec extends Specification {
 		rs.first().getString("id") == "cassandraStatementBuilderSpec-streamId"
 		rs.first().getInt("partition") == 0
 		rs.first().getTimestamp("ts") == new Date(timestamp)
-		rs.first().getInt("sequence_no") == 0
+		rs.first().getLong("sequence_no") == 0
 		rs.first().getString("publisher_id") == "0xF915eD664e43C50eB7b9Ca7CfEB992703eDe55c4"
 		rs.first().getBytes("payload") == ByteBuffer.wrap(message.toBytes())
 	}
@@ -133,7 +133,7 @@ class CassandraStatementBuilderSpec extends Specification {
 		rs.first().getString("id") == "cassandraStatementBuilderSpec-streamId"
 		rs.first().getInt("partition") == 0
 		rs.first().getTimestamp("ts") == new Date(timestamp)
-		rs.first().getInt("sequence_no") == 0
+		rs.first().getLong("sequence_no") == 0
 		rs.first().getString("publisher_id") == "publisherId"
 		rs.first().getString("msg_chain_id") == "msgChainId"
 		rs.first().getBytes("payload") == ByteBuffer.wrap(message.toBytes())

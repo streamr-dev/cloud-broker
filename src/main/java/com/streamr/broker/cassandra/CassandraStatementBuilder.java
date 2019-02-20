@@ -14,8 +14,8 @@ class CassandraStatementBuilder {
 
 	CassandraStatementBuilder(Session session) {
 		eventInsert = session.prepare("INSERT INTO stream_data" +
-			" (id, partition, ts, sequence_no, publisher_id, payload)" +
-			" VALUES (?, ?, ?, ?, ?, ?)");
+			" (id, partition, ts, sequence_no, publisher_id, msg_chain_id, payload)" +
+			" VALUES (?, ?, ?, ?, ?, ?, ?)");
 	}
 
 	BoundStatement eventInsert(StreamMessage msg) {
@@ -23,8 +23,9 @@ class CassandraStatementBuilder {
 			msg.getStreamId(),
 			msg.getStreamPartition(),
 			msg.getTimestampAsDate(),
-			(int) msg.getSequenceNumber(),
+			msg.getSequenceNumber(),
 			msg.getPublisherId(),
+			msg.getMsgChainId(),
 			ByteBuffer.wrap(msg.toBytes()));
 	}
 
