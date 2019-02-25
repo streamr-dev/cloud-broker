@@ -40,8 +40,8 @@ jobs:
         secure: "py8GUiWXB+h6wUD/DyelekT5LZmExbl+FgRlZAlFvgWitUMu5fkkBKRL+1kBNPTytxTLWke14585gOKr8quHHZyM97ykVkQg7DXJC+TS51nLp4+0piG+NPBBmoodDm1EXJ+Hv6U78eZcOw3gPsw8WhisZFGOknVZMN0aHXsJm3qUMHGBMgttd+LKz+sk82CdzpW90iPwlehaPZD/Fu1ciWXjmcBagBuMrLDJMoLSKNEHMhqwQzGAtAbij9PBucIdAknEKsuAU9bOiOWHxXlH+tINhYuuF8O5zCUovjVYDvxjp/tqWbiiEGrL9sI+PdxGP+OwOPynb+fWkESCrj6OPx2aIMLdeeiozq/aiUKlasE8trRqv5Ohm8+dVwSwCzwc6YMGMpngHBTRPpS+iuhAEKc8ivYIp2Vno8iKvbFWhCgz6lzjgYEefjnsGwOlxiM0pt8IeqIjXEu4UadulgrcUHox6F7Hi6NjfFAEC2c8y89ZXzirpZ7TGXzBhJsFHM9jETTF390sGekb+6ZLH2/Uto8JjpfORQAiaV4vQ1vomKTgTEgyQ8cwbmW8b/3KvXtZYArlnsAvcwBfKrBfdP5U2EwfcZ8FgI7mTAG93pGQQfgGS0Ehbsyx+mqCzOSbHA+EO7xACzOoVJzN1VNfLVzK1GjVm47inEf05PL/rk8ucpE="
       bucket: eu-west-1-stg-streamr-vault
       key: broker/releases/broker.tar
-      application: staging-broker-codedeploy
-      deployment_group: staging-broker-deployment-group
+      application: eu-west-1-stg-broker-codedeploy
+      deployment_group: eu-west-1-stg-broker-deployment-group
       region: eu-west-1
   - stage: Build docker (dev)
     if: tag IS blank
