@@ -4,7 +4,9 @@ import com.streamr.broker.Config
 import com.streamr.broker.KafkaDataProducer
 import com.streamr.broker.StreamrBinaryMessage
 import com.streamr.broker.StreamrBinaryMessageV28
-import com.streamr.broker.StreamrBinaryMessageWithKafkaMetadata
+import com.streamr.broker.StreamrBinaryMessageV29
+import com.streamr.client.protocol.message_layer.StreamMessage
+import com.streamr.client.protocol.message_layer.StreamMessageV30
 import spock.lang.Specification
 import spock.util.concurrent.PollingConditions
 
@@ -19,7 +21,16 @@ class KafkaListenerSpec extends Specification {
 	void setupSpec() {
 		// Intentional: Auto-create topic by connecting and producing
 		def p = new KafkaDataProducer(Config.KAFKA_HOST, DATA_TOPIC)
-		p.produceToKafka(new StreamrBinaryMessageV28("sss", 0, 0, 0, (byte)0, "".bytes))
+		p.produceToKafka(new StreamrBinaryMessageV29(
+				"sss",
+				0,
+				0L,
+				0,
+				StreamrBinaryMessage.CONTENT_TYPE_JSON,
+				"".bytes,
+				StreamrBinaryMessage.SignatureType.SIGNATURE_TYPE_NONE,
+				"",
+				""))
 		p.close()
 	}
 
@@ -28,7 +39,7 @@ class KafkaListenerSpec extends Specification {
 	}
 
 	void "async callback invoked for received records"() {
-		List<StreamrBinaryMessageWithKafkaMetadata> receivedMessages = []
+		List<StreamMessage> receivedMessages = []
 		KafkaListener kafkaListener = new KafkaListener(Config.KAFKA_HOST, GROUP_ID, DATA_TOPIC, { msg ->
 			receivedMessages.add(msg)
 		})
@@ -39,26 +50,55 @@ class KafkaListenerSpec extends Specification {
 
 		and:
 		KafkaDataProducer producer = new KafkaDataProducer(Config.KAFKA_HOST, DATA_TOPIC)
-		(1..5).each {
-			def msg = new StreamrBinaryMessageV28(
+		producer.produceToKafka(new StreamrBinaryMessageV28(
 				"streamId",
 				0,
 				System.currentTimeMillis(),
 				0,
-				StreamrBinaryMessage.CONTENT_TYPE_STRING,
-				"message no. ${it}".bytes
+				StreamrBinaryMessage.CONTENT_TYPE_JSON,
+				('{"message no.": "1"}').bytes,
+		))
+		producer.produceToKafka(new StreamrBinaryMessageV29(
+				"streamId",
+				0,
+				System.currentTimeMillis(),
+				0,
+				StreamrBinaryMessage.CONTENT_TYPE_JSON,
+				('{"message no.": "2"}').bytes,
+				StreamrBinaryMessage.SignatureType.SIGNATURE_TYPE_NONE,
+				"",
+				""
+		))
+		(3..5).each {
+			def msg = new StreamMessageV30(
+				"streamId",
+				0,
+				System.currentTimeMillis(),
+				0,
+				"publisherId",
+				"msgChainId",
+				System.currentTimeMillis() - 1000,
+				0,
+				StreamMessage.ContentType.CONTENT_TYPE_JSON,
+				'{"message no.": "'+it+'"}',
+				StreamMessage.SignatureType.SIGNATURE_TYPE_ETH,
+				"signature"
 			)
 			producer.produceToKafka(msg)
 		}
 
 		then:
 		conditions.eventually {
-			assert receivedMessages*.toString() == [
-			    "message no. 1",
-				"message no. 2",
-				"message no. 3",
-				"message no. 4",
-				"message no. 5",
+			ArrayList<String> messageNumbers = new ArrayList<String>()
+			for(StreamMessage msg: receivedMessages) {
+				messageNumbers.add((String) msg.getContent().get("message no."))
+			}
+			assert messageNumbers == [
+			    "1",
+				"2",
+				"3",
+				"4",
+				"5",
 			]
 		}
 

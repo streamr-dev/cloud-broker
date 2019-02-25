@@ -3,8 +3,10 @@ package com.streamr.broker.cassandra
 import com.datastax.driver.core.Cluster
 import com.datastax.driver.core.Session
 import com.streamr.broker.Config
-import com.streamr.broker.StreamrBinaryMessage
-import com.streamr.broker.StreamrBinaryMessageWithKafkaMetadata
+import com.streamr.client.protocol.message_layer.StreamMessage
+import com.streamr.client.protocol.message_layer.StreamMessageV28
+import com.streamr.client.protocol.message_layer.StreamMessageV29
+import com.streamr.client.protocol.message_layer.StreamMessageV30
 import groovy.transform.CompileStatic
 import spock.lang.Shared
 import spock.lang.Specification
@@ -33,18 +35,17 @@ class CassandraStatementBuilderSpec extends Specification {
 		cluster?.close()
 	}
 
-	void "eventInsert() inserts expected data to Cassandra"() {
+	void "eventInsert() inserts expected data (v28) to Cassandra"() {
 		def timestamp = System.currentTimeMillis()
-		def message = new StreamrBinaryMessageWithKafkaMetadata(
-			"cassandraStatementBuilderSpec-streamId",
-			0,
-			timestamp,
-			0,
-			StreamrBinaryMessage.CONTENT_TYPE_STRING,
-			"hello, world!".bytes,
-			3,
-			51248,
-			51247
+		def message = new StreamMessageV28(
+				"cassandraStatementBuilderSpec-streamId",
+				0,
+				timestamp,
+				0,
+				51248,
+				51247,
+				StreamMessage.ContentType.CONTENT_TYPE_JSON,
+				'{"hello": "world!"}',
 		)
 
 		when:
@@ -53,32 +54,33 @@ class CassandraStatementBuilderSpec extends Specification {
 
 		then:
 		def rs = session.execute(
-			"SELECT * FROM stream_events WHERE stream = ? ALLOW FILTERING",
-			"cassandraStatementBuilderSpec-streamId"
+				"SELECT * FROM stream_data WHERE id = ? ALLOW FILTERING",
+				"cassandraStatementBuilderSpec-streamId"
 		).all()
 
 		rs.size() == 1
-		rs.first().getString("stream") == "cassandraStatementBuilderSpec-streamId"
-		rs.first().getInt("stream_partition") == 0
-		rs.first().getInt("kafka_partition") == 3
-		rs.first().getLong("kafka_offset") == 51248
-		rs.first().getLong("previous_offset") == 51247
+		rs.first().getString("id") == "cassandraStatementBuilderSpec-streamId"
+		rs.first().getInt("partition") == 0
 		rs.first().getTimestamp("ts") == new Date(timestamp)
+		rs.first().getLong("sequence_no") == 0
+		rs.first().getString("publisher_id") == ""
 		rs.first().getBytes("payload") == ByteBuffer.wrap(message.toBytes())
 	}
 
-	void "eventInsert() with TTL inserts disappearing data to Cassandra"() {
+	void "eventInsert() inserts expected data (v29) to Cassandra"() {
 		def timestamp = System.currentTimeMillis()
-		def message = new StreamrBinaryMessageWithKafkaMetadata(
+		def message = new StreamMessageV29(
 			"cassandraStatementBuilderSpec-streamId",
 			0,
 			timestamp,
-			1,
-			StreamrBinaryMessage.CONTENT_TYPE_STRING,
-			"hello, world!".bytes,
-			3,
-			51249,
-			51248
+			0,
+			51248,
+			51247,
+			StreamMessage.ContentType.CONTENT_TYPE_JSON,
+			'{"hello": "world!"}',
+			StreamMessage.SignatureType.SIGNATURE_TYPE_ETH,
+			"0xF915eD664e43C50eB7b9Ca7CfEB992703eDe55c4",
+			"0xcb1fa20f2f8e75f27d3f171d236c071f0de39e4b497c51b390306fc6e7e112bb415ecea1bd093320dd91fd91113748286711122548c52a15179822a014dc14931b"
 		)
 
 		when:
@@ -87,139 +89,99 @@ class CassandraStatementBuilderSpec extends Specification {
 
 		then:
 		def rs = session.execute(
-			"SELECT * FROM stream_events WHERE stream = ? ALLOW FILTERING",
+			"SELECT * FROM stream_data WHERE id = ? ALLOW FILTERING",
 			"cassandraStatementBuilderSpec-streamId"
 		).all()
 
 		rs.size() == 1
-		rs.first().getString("stream") == "cassandraStatementBuilderSpec-streamId"
-		rs.first().getInt("stream_partition") == 0
-		rs.first().getInt("kafka_partition") == 3
-		rs.first().getLong("kafka_offset") == 51249
-		rs.first().getLong("previous_offset") == 51248
+		rs.first().getString("id") == "cassandraStatementBuilderSpec-streamId"
+		rs.first().getInt("partition") == 0
 		rs.first().getTimestamp("ts") == new Date(timestamp)
+		rs.first().getLong("sequence_no") == 0
+		rs.first().getString("publisher_id") == "0xF915eD664e43C50eB7b9Ca7CfEB992703eDe55c4"
 		rs.first().getBytes("payload") == ByteBuffer.wrap(message.toBytes())
-
-
-		when:
-		sleep(1000)
-		def rs2 = session.execute(
-			"SELECT * FROM stream_events WHERE stream = ? ALLOW FILTERING",
-			"cassandraStatementBuilderSpec-streamId"
-		).all()
-
-		then:
-		rs2.size() == 0
-
 	}
 
-	void "tsInsert() inserts expected data to Cassandra"() {
+	void "eventInsert() inserts expected data (v30) to Cassandra"() {
 		def timestamp = System.currentTimeMillis()
-		def message = new StreamrBinaryMessageWithKafkaMetadata(
-			"cassandraStatementBuilderSpec-streamId",
-			0,
-			timestamp,
-			0,
-			StreamrBinaryMessage.CONTENT_TYPE_STRING,
-			"hello, world!".bytes,
-			3,
-			51248,
-			51247
+		def message = new StreamMessageV30(
+				"cassandraStatementBuilderSpec-streamId",
+				0,
+				timestamp,
+				0,
+				"publisherId",
+				"msgChainId",
+				timestamp - 500,
+				0,
+				StreamMessage.ContentType.CONTENT_TYPE_JSON,
+				'{"hello": "world!"}',
+				StreamMessage.SignatureType.SIGNATURE_TYPE_ETH,
+				"0xcb1fa20f2f8e75f27d3f171d236c071f0de39e4b497c51b390306fc6e7e112bb415ecea1bd093320dd91fd91113748286711122548c52a15179822a014dc14931b"
 		)
 
 		when:
-		def statement = builder.tsInsert(message)
+		def statement = builder.eventInsert(message)
 		session.execute(statement)
 
 		then:
 		def rs = session.execute(
-			"SELECT * FROM stream_timestamps WHERE stream = ? ALLOW FILTERING",
-			"cassandraStatementBuilderSpec-streamId"
+				"SELECT * FROM stream_data WHERE id = ? ALLOW FILTERING",
+				"cassandraStatementBuilderSpec-streamId"
 		).all()
 
 		rs.size() == 1
-		rs.first().getString("stream") == "cassandraStatementBuilderSpec-streamId"
-		rs.first().getInt("stream_partition") == 0
-		rs.first().getLong("kafka_offset") == 51248
+		rs.first().getString("id") == "cassandraStatementBuilderSpec-streamId"
+		rs.first().getInt("partition") == 0
 		rs.first().getTimestamp("ts") == new Date(timestamp)
+		rs.first().getLong("sequence_no") == 0
+		rs.first().getString("publisher_id") == "publisherId"
+		rs.first().getString("msg_chain_id") == "msgChainId"
+		rs.first().getBytes("payload") == ByteBuffer.wrap(message.toBytes())
 	}
 
-	void "tsInsert() with TTL inserts disappearing data to Cassandra"() {
+	void "eventInsertBatch() inserts expected data to Cassandra"() {
 		def timestamp = System.currentTimeMillis()
-		def message = new StreamrBinaryMessageWithKafkaMetadata(
-			"cassandraStatementBuilderSpec-streamId",
-			0,
-			timestamp,
-			1,
-			StreamrBinaryMessage.CONTENT_TYPE_STRING,
-			"hello, world!".bytes,
-			3,
-			51249,
-			51248
+		def msg1 = new StreamMessageV30(
+				"cassandraStatementBuilderSpec-streamId",
+				0,
+				timestamp,
+				0,
+				"publisherId",
+				"msgChainId",
+				(Long) null,
+				0,
+				StreamMessage.ContentType.CONTENT_TYPE_JSON,
+				'{"hello": "world!"}',
+				StreamMessage.SignatureType.SIGNATURE_TYPE_ETH,
+				"0xcb1fa20f2f8e75f27d3f171d236c071f0de39e4b497c51b390306fc6e7e112bb415ecea1bd093320dd91fd91113748286711122548c52a15179822a014dc14931b"
 		)
-
-		when:
-		def statement = builder.tsInsert(message)
-		session.execute(statement)
-
-		then:
-		def rs = session.execute(
-			"SELECT * FROM stream_timestamps WHERE stream = ? ALLOW FILTERING",
-			"cassandraStatementBuilderSpec-streamId"
-		).all()
-
-		rs.size() == 1
-		rs.first().getString("stream") == "cassandraStatementBuilderSpec-streamId"
-		rs.first().getInt("stream_partition") == 0
-		rs.first().getLong("kafka_offset") == 51249
-		rs.first().getTimestamp("ts") == new Date(timestamp)
-
-		when:
-		sleep(1000)
-		def rs2 = session.execute(
-			"SELECT * FROM stream_events WHERE stream = ? ALLOW FILTERING",
-			"cassandraStatementBuilderSpec-streamId"
-		).all()
-
-		then:
-		rs2.size() == 0
-
-	}
-
-	void "eventInsertBatch() inserts expected (disappearing and persistent) data to Cassandra"() {
-		def timestamp = System.currentTimeMillis()
-		def msg1 = new StreamrBinaryMessageWithKafkaMetadata(
-			"cassandraStatementBuilderSpec-streamId",
-			0,
-			timestamp,
-			0,
-			StreamrBinaryMessage.CONTENT_TYPE_STRING,
-			"hello, world #1!".bytes,
-			3,
-			51250,
-			51247
+		def msg2 = new StreamMessageV30(
+				"cassandraStatementBuilderSpec-streamId",
+				0,
+				timestamp + 500,
+				0,
+				"publisherId",
+				"msgChainId",
+				timestamp,
+				0,
+				StreamMessage.ContentType.CONTENT_TYPE_JSON,
+				'{"hello": "world!"}',
+				StreamMessage.SignatureType.SIGNATURE_TYPE_ETH,
+				"0xcb1fa20f2f8e75f27d3f171d236c071f0de39e4b497c51b390306fc6e7e112bb415ecea1bd093320dd91fd91113748286711122548c52a15179822a014dc14931b"
 		)
-		def msg2 = new StreamrBinaryMessageWithKafkaMetadata(
-			"cassandraStatementBuilderSpec-streamId",
-			0,
-			timestamp + 60000,
-			0,
-			StreamrBinaryMessage.CONTENT_TYPE_STRING,
-			"hello, world #2!".bytes,
-			3,
-			51255,
-			51250
-		)
-		def msg3 = new StreamrBinaryMessageWithKafkaMetadata(
-			"cassandraStatementBuilderSpec-streamId",
-			0,
-			timestamp+ 120000,
-			1,
-			StreamrBinaryMessage.CONTENT_TYPE_STRING,
-			"hello, world #3!".bytes,
-			3,
-			51258,
-			51255
+		def msg3 = new StreamMessageV30(
+				"cassandraStatementBuilderSpec-streamId",
+				0,
+				timestamp + 1000,
+				0,
+				"publisherId",
+				"msgChainId",
+				timestamp + 500,
+				0,
+				StreamMessage.ContentType.CONTENT_TYPE_JSON,
+				'{"hello": "world!"}',
+				StreamMessage.SignatureType.SIGNATURE_TYPE_ETH,
+				"0xcb1fa20f2f8e75f27d3f171d236c071f0de39e4b497c51b390306fc6e7e112bb415ecea1bd093320dd91fd91113748286711122548c52a15179822a014dc14931b"
 		)
 
 		when:
@@ -227,134 +189,16 @@ class CassandraStatementBuilderSpec extends Specification {
 
 		then:
 		def rs = session.execute(
-			"SELECT * FROM stream_events WHERE stream = ? ALLOW FILTERING",
+			"SELECT * FROM stream_data WHERE id = ? ALLOW FILTERING",
 			"cassandraStatementBuilderSpec-streamId"
 		).all()
 
 		rs.size() == 3
-
-		when:
-		sleep(1000)
-		def rs2 = session.execute(
-			"SELECT * FROM stream_events WHERE stream = ? ALLOW FILTERING",
-			"cassandraStatementBuilderSpec-streamId"
-		).all()
-
-		then:
-		rs2.size() == 2
-	}
-
-	void "tsBatchInsert() inserts expected (disappearing and persistent) data to Cassandra"() {
-		def timestamp = System.currentTimeMillis()
-		def msg1 = new StreamrBinaryMessageWithKafkaMetadata(
-			"cassandraStatementBuilderSpec-streamId",
-			0,
-			timestamp,
-			0,
-			StreamrBinaryMessage.CONTENT_TYPE_STRING,
-			"hello, world #1!".bytes,
-			3,
-			51250,
-			51247
-		)
-		def msg2 = new StreamrBinaryMessageWithKafkaMetadata(
-			"cassandraStatementBuilderSpec-streamId",
-			0,
-			timestamp + 60000,
-			0,
-			StreamrBinaryMessage.CONTENT_TYPE_STRING,
-			"hello, world #2!".bytes,
-			3,
-			51255,
-			51250
-		)
-		def msg3 = new StreamrBinaryMessageWithKafkaMetadata(
-			"cassandraStatementBuilderSpec-streamId",
-			0,
-			timestamp+ 120000,
-			1,
-			StreamrBinaryMessage.CONTENT_TYPE_STRING,
-			"hello, world #3!".bytes,
-			3,
-			51258,
-			51255
-		)
-
-		when:
-		session.execute(builder.tsBatchInsert([msg1, msg2, msg3]))
-
-		then:
-		def rs = session.execute(
-			"SELECT * FROM stream_timestamps WHERE stream = ? ALLOW FILTERING",
-			"cassandraStatementBuilderSpec-streamId"
-		).all()
-
-		rs.size() == 3
-
-		when:
-		sleep(1000)
-		def rs2 = session.execute(
-			"SELECT * FROM stream_timestamps WHERE stream = ? ALLOW FILTERING",
-			"cassandraStatementBuilderSpec-streamId"
-		).all()
-
-		then:
-		rs2.size() == 2
-	}
-
-	void "tsBatchInsert() avoids writing sub-second entries to Cassandra"() {
-		def timestamp = System.currentTimeMillis()
-		def msg1 = new StreamrBinaryMessageWithKafkaMetadata(
-			"cassandraStatementBuilderSpec-streamId",
-			0,
-			timestamp,
-			0,
-			StreamrBinaryMessage.CONTENT_TYPE_STRING,
-			"hello, world #1!".bytes,
-			3,
-			51250,
-			51247
-		)
-		def msg2 = new StreamrBinaryMessageWithKafkaMetadata(
-			"cassandraStatementBuilderSpec-streamId",
-			0,
-			timestamp + 500,
-			0,
-			StreamrBinaryMessage.CONTENT_TYPE_STRING,
-			"hello, world #2!".bytes,
-			3,
-			51255,
-			51250
-		)
-		def msg3 = new StreamrBinaryMessageWithKafkaMetadata(
-			"cassandraStatementBuilderSpec-streamId",
-			0,
-			timestamp + 999,
-			0,
-			StreamrBinaryMessage.CONTENT_TYPE_STRING,
-			"hello, world #3!".bytes,
-			3,
-			51258,
-			51255
-		)
-
-		when:
-		session.execute(builder.tsBatchInsert([msg1, msg2, msg3]))
-
-		then:
-		def rs = session.execute(
-			"SELECT * FROM stream_timestamps WHERE stream = ? ALLOW FILTERING",
-			"cassandraStatementBuilderSpec-streamId"
-		).all()
-
-		rs.size() == 1
 	}
 
 	@CompileStatic
 	private static void clearData(Session session) {
-		session.execute("DELETE FROM stream_events WHERE stream = ? AND stream_partition = ?",
-			"cassandraStatementBuilderSpec-streamId", 0)
-		session.execute("DELETE FROM stream_timestamps WHERE stream = ? AND stream_partition = ?",
+		session.execute("DELETE FROM stream_data WHERE id = ? AND partition = ?",
 			"cassandraStatementBuilderSpec-streamId", 0)
 	}
 }

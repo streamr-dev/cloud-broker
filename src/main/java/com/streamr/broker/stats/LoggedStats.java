@@ -1,6 +1,6 @@
 package com.streamr.broker.stats;
 
-import com.streamr.broker.StreamrBinaryMessageWithKafkaMetadata;
+import com.streamr.client.protocol.message_layer.StreamMessage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -36,20 +36,20 @@ public class LoggedStats implements Stats {
 	public void stop() {}
 
 	@Override
-	public void onReadFromKafka(StreamrBinaryMessageWithKafkaMetadata msg) {
+	public void onReadFromKafka(StreamMessage msg) {
 		totalEventsRead++;
-		totalBytesRead += msg.getStreamrBinaryMessage().sizeInBytes();
-		lastTimestamp = msg.getStreamrBinaryMessage().getTimestamp();
+		totalBytesRead += msg.sizeInBytes();
+		lastTimestamp = msg.getTimestamp();
 	}
 
 	@Override
-	public void onWrittenToCassandra(StreamrBinaryMessageWithKafkaMetadata msg) {
+	public void onWrittenToCassandra(StreamMessage msg) {
 		totalEventsWritten++;
-		totalBytesWritten += msg.getStreamrBinaryMessage().sizeInBytes();
+		totalBytesWritten += msg.sizeInBytes();
 	}
 
 	@Override
-	public void onWrittenToRedis(StreamrBinaryMessageWithKafkaMetadata msg) {}
+	public void onWrittenToRedis(StreamMessage msg) {}
 
 	@Override
 	public void onCassandraWriteError() {

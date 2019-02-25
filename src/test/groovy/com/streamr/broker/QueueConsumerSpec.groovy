@@ -1,6 +1,7 @@
 package com.streamr.broker
 
 import com.streamr.broker.stats.Stats
+import com.streamr.client.protocol.message_layer.StreamMessage
 import groovy.transform.CompileStatic
 import spock.lang.Specification
 import spock.util.concurrent.PollingConditions
@@ -13,8 +14,8 @@ import java.util.concurrent.Executors
 class QueueConsumerSpec extends Specification {
 
 	ExecutorService executor = Executors.newSingleThreadExecutor()
-	TestRepoter reporter1 = new TestRepoter()
-	TestRepoter reporter2 = new TestRepoter()
+	TestReporter reporter1 = new TestReporter()
+	TestReporter reporter2 = new TestReporter()
 	QueueConsumer queueConsumer
 
 	void setup() {
@@ -57,15 +58,15 @@ class QueueConsumerSpec extends Specification {
 	}
 
 	@CompileStatic
-	class TestRepoter implements Reporter {
-		List<StreamrBinaryMessageWithKafkaMetadata> receivedMessages = []
+	class TestReporter implements Reporter {
+		List<StreamMessage> receivedMessages = []
 		int closeInvocations = 0
 
 		@Override
 		void setStats(Stats stats) {}
 
 		@Override
-		void report(StreamrBinaryMessageWithKafkaMetadata msg) {
+		void report(StreamMessage msg) {
 			receivedMessages.add(msg)
 		}
 

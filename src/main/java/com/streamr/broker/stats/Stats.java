@@ -1,11 +1,11 @@
 package com.streamr.broker.stats;
 
-import com.streamr.broker.StreamrBinaryMessageWithKafkaMetadata;
+import com.streamr.client.protocol.message_layer.StreamMessage;
 
 public interface Stats {
-	void onReadFromKafka(StreamrBinaryMessageWithKafkaMetadata msg);
-	void onWrittenToCassandra(StreamrBinaryMessageWithKafkaMetadata msg);
-	void onWrittenToRedis(StreamrBinaryMessageWithKafkaMetadata msg);
+	void onReadFromKafka(StreamMessage msg);
+	void onWrittenToCassandra(StreamMessage msg);
+	void onWrittenToRedis(StreamMessage msg);
 	void onCassandraWriteError();
 	void start(int intervalInSec);
 	void stop();

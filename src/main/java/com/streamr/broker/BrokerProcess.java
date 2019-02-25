@@ -1,6 +1,7 @@
 package com.streamr.broker;
 
 import com.streamr.broker.stats.Stats;
+import com.streamr.client.protocol.message_layer.StreamMessage;
 
 import java.util.concurrent.*;
 import java.util.function.Function;
@@ -11,7 +12,7 @@ public class BrokerProcess {
 	private final ScheduledExecutorService statsExecutor = Executors.newScheduledThreadPool(1,
 		r -> new Thread(r, "statsLogger"));
 
-	private final BlockingQueue<StreamrBinaryMessageWithKafkaMetadata> queue;
+	private final BlockingQueue<StreamMessage> queue;
 	private Stats stats;
 	private int intervalInSec;
 	private Runnable consumer;

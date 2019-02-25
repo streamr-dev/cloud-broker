@@ -5,8 +5,6 @@ import com.streamr.broker.kafka.KafkaListener;
 import com.streamr.broker.redis.RedisReporter;
 import com.streamr.broker.stats.LoggedStats;
 
-import java.util.concurrent.ExecutionException;
-
 public class Main {
 
 	public static void main(String[] args) {

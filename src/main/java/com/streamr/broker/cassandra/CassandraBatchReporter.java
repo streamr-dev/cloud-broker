@@ -4,8 +4,8 @@ import com.datastax.driver.core.*;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.streamr.broker.Reporter;
-import com.streamr.broker.StreamrBinaryMessageWithKafkaMetadata;
 import com.streamr.broker.stats.Stats;
+import com.streamr.client.protocol.message_layer.StreamMessage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -57,7 +57,7 @@ public class CassandraBatchReporter implements Reporter {
 	}
 
 	@Override
-	public void report(StreamrBinaryMessageWithKafkaMetadata msg) {
+	public void report(StreamMessage msg) {
 		numOfMessagesSemaphore.acquireUninterruptibly();
 		String key = formKey(msg);
 		synchronized (batches) {
@@ -77,8 +77,8 @@ public class CassandraBatchReporter implements Reporter {
 		session.getCluster().close(); // => session.close()
 	}
 
-	private static String formKey(StreamrBinaryMessageWithKafkaMetadata msg) {
-		return msg.getStreamrBinaryMessage().getStreamId() + "|" + msg.getStreamrBinaryMessage().getPartition();
+	private static String formKey(StreamMessage msg) {
+		return msg.getStreamId() + "|" + msg.getStreamPartition();
 	}
 
 	private int getCommitIntervalInMs() {
@@ -95,14 +95,14 @@ public class CassandraBatchReporter implements Reporter {
 	private class Batch extends TimerTask {
 		private final String key;
 		private long totalSizeInBytes = 0;
-		private final List<StreamrBinaryMessageWithKafkaMetadata> messages = new ArrayList<>();
-		private final FutureCallback<List<ResultSet>> statsCallback = new FutureCallback<List<ResultSet>>() {
+		private final List<StreamMessage> messages = new ArrayList<>();
+		private final FutureCallback<ResultSet> statsCallback = new FutureCallback<ResultSet>() {
 			@Override
-			public void onSuccess(List<ResultSet> result) {
+			public void onSuccess(ResultSet result) {
 				failMultiplier = 1;
 				numOfMessagesSemaphore.release(messages.size());
 				cassandraSemaphore.release();
-				for (StreamrBinaryMessageWithKafkaMetadata msg : messages) {
+				for (StreamMessage msg : messages) {
 					stats.onWrittenToCassandra(msg);
 				}
 			}
@@ -112,13 +112,13 @@ public class CassandraBatchReporter implements Reporter {
 				cassandraSemaphore.release();
 				growFailMultiplier();
 				long commitIntervalInMs = getCommitIntervalInMs();
-				StreamrBinaryMessageWithKafkaMetadata firstMessage = messages.get(0);
-				StreamrBinaryMessageWithKafkaMetadata lastMessage = messages.get(messages.size() - 1);
-				log.error("Failed to write to '{}'. Offsets {} - {}. Total bytes {}. Exception: {}." +
+				StreamMessage firstMessage = messages.get(0);
+				StreamMessage lastMessage = messages.get(messages.size() - 1);
+				log.error("Failed to write to '{}'. Timestamps {} - {}. Total bytes {}. Exception: {}." +
 						"Re-scheduled to {} ms.",
-					firstMessage.getStreamrBinaryMessage().getStreamId(),
-					firstMessage.getOffset(),
-					lastMessage.getOffset(),
+					firstMessage.getStreamId(),
+					firstMessage.getTimestamp(),
+					lastMessage.getTimestamp(),
 					totalSizeInBytes,
 					t,
 					commitIntervalInMs
@@ -136,8 +136,8 @@ public class CassandraBatchReporter implements Reporter {
 			return totalSizeInBytes >= DO_NOT_GROW_BATCH_AFTER_BYTES;
 		}
 
-		void add(StreamrBinaryMessageWithKafkaMetadata msg) {
-			totalSizeInBytes += msg.getStreamrBinaryMessage().sizeInBytes();
+		void add(StreamMessage msg) {
+			totalSizeInBytes += msg.sizeInBytes();
 			messages.add(msg);
 		}
 
@@ -147,11 +147,9 @@ public class CassandraBatchReporter implements Reporter {
 				batches.remove(key, this);
 			}
 			BatchStatement eventPs = cassandraStatementBuilder.eventBatchInsert(messages);
-			BatchStatement tsPs = cassandraStatementBuilder.tsBatchInsert(messages);
 			cassandraSemaphore.acquireUninterruptibly();
-			ResultSetFuture f1 = session.executeAsync(eventPs);
-			ResultSetFuture f2 = session.executeAsync(tsPs);
-			Futures.addCallback(Futures.allAsList(f1, f2), statsCallback);
+			ResultSetFuture f = session.executeAsync(eventPs);
+			Futures.addCallback(f, statsCallback);
 		}
 	}
 }

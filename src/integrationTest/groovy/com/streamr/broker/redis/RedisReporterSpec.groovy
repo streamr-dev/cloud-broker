@@ -2,29 +2,31 @@ package com.streamr.broker.redis
 
 import com.lambdaworks.redis.RedisClient
 import com.lambdaworks.redis.RedisURI
-import com.lambdaworks.redis.api.sync.RedisCommands
 import com.lambdaworks.redis.codec.ByteArrayCodec
 import com.lambdaworks.redis.pubsub.RedisPubSubListener
 import com.lambdaworks.redis.pubsub.api.sync.RedisPubSubCommands
 import com.streamr.broker.Config
-import com.streamr.broker.StreamrBinaryMessage
-import com.streamr.broker.StreamrBinaryMessageWithKafkaMetadata
 import com.streamr.broker.stats.LoggedStats
 import com.streamr.broker.stats.Stats
+import com.streamr.client.protocol.message_layer.StreamMessage
+import com.streamr.client.protocol.message_layer.StreamMessageV30
 import spock.lang.Specification
 import spock.util.concurrent.BlockingVariable
 
 class RedisReporterSpec extends Specification {
-	StreamrBinaryMessageWithKafkaMetadata testMessage = new StreamrBinaryMessageWithKafkaMetadata(
-		"streamId",
-		0,
-		System.currentTimeMillis(),
-		0,
-		StreamrBinaryMessage.CONTENT_TYPE_STRING,
-		"hello world".bytes,
-		1,
-		10561,
-		10560
+	StreamMessage testMessage = new StreamMessageV30(
+			"streamId",
+			0,
+			System.currentTimeMillis(),
+			0,
+			"publisherId",
+			"msgChainId",
+			System.currentTimeMillis() - 1000,
+			0,
+			StreamMessage.ContentType.CONTENT_TYPE_JSON,
+			'{"hello": "world"}',
+			StreamMessage.SignatureType.SIGNATURE_TYPE_ETH,
+			"signature"
 	)
 
 	RedisReporter reporter = new RedisReporter(Config.REDIS_HOST, Config.REDIS_PASSWORD)
@@ -72,36 +74,23 @@ class RedisReporterSpec extends Specification {
 		when:
 		reporter.report(testMessage)
 		then:
-		blockingVariable.get() == testMessage.toBytesWithKafkaMetadata()
-
-		cleanup:
-		commands.close()
-	}
-
-	void "report() sets expiring key-value pair"() {
-		RedisCommands<String, String> commands = client.connect().sync()
-
-		when:
-		reporter.report(testMessage)
-		then:
-		commands.get("streamId-0") == "10561"
-		commands.ttl("streamId-0") <= 5
+		blockingVariable.get() == testMessage.toBytes()
 
 		cleanup:
 		commands.close()
 	}
 
 	void "report() invokes Stats#onWrittenToRedis(msg)"() {
-		def blockingVariable = new BlockingVariable<StreamrBinaryMessageWithKafkaMetadata>(5)
+		def blockingVariable = new BlockingVariable<StreamMessage>(5)
 		reporter.setStats(new Stats() {
 			@Override
-			void onReadFromKafka(StreamrBinaryMessageWithKafkaMetadata msg) {}
+			void onReadFromKafka(StreamMessage msg) {}
 
 			@Override
-			void onWrittenToCassandra(StreamrBinaryMessageWithKafkaMetadata msg) {}
+			void onWrittenToCassandra(StreamMessage msg) {}
 
 			@Override
-			void onWrittenToRedis(StreamrBinaryMessageWithKafkaMetadata msg) {
+			void onWrittenToRedis(StreamMessage msg) {
 				blockingVariable.set(msg)
 			}
 
