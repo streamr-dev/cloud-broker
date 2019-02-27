@@ -41,7 +41,7 @@ jobs:
       bucket: eu-west-1-stg-streamr-vault
       key: broker/releases/broker.tar
       application: eu-west-1-stg-broker-codedeploy
-      deployment_group: eu-west-1-stg-broker-dg
+      deployment_group: eu-west-1-stg-broker-deployment-group
       region: eu-west-1
   - stage: Build docker (dev)
     if: tag IS blank
