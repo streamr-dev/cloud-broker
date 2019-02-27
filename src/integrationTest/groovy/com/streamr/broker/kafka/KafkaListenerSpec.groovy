@@ -105,4 +105,57 @@ class KafkaListenerSpec extends Specification {
 		cleanup:
 		producer?.close()
 	}
+
+	void "keeps going even when receiving invalid records"() {
+		List<StreamMessage> receivedMessages = []
+		KafkaListener kafkaListener = new KafkaListener(Config.KAFKA_HOST, GROUP_ID, DATA_TOPIC, { msg ->
+			receivedMessages.add(msg)
+		})
+		def conditions = new PollingConditions(timeout: 10, initialDelay: 1.5)
+
+		when:
+		executor.execute(kafkaListener)
+
+		and:
+		KafkaDataProducer producer = new KafkaDataProducer(Config.KAFKA_HOST, DATA_TOPIC)
+		producer.produceToKafka(new StreamMessageV30(
+				null,
+				0,
+				System.currentTimeMillis(),
+				0,
+				"publisherId",
+				"msgChainId",
+				System.currentTimeMillis() - 1000,
+				0,
+				StreamMessage.ContentType.CONTENT_TYPE_JSON,
+				'{"message no.": "1"}',
+				StreamMessage.SignatureType.SIGNATURE_TYPE_ETH,
+				"signature"
+		))
+		producer.produceToKafka(new StreamMessageV30(
+				"streamId",
+				0,
+				System.currentTimeMillis(),
+				0,
+				"publisherId",
+				"msgChainId",
+				System.currentTimeMillis() - 1000,
+				0,
+				StreamMessage.ContentType.CONTENT_TYPE_JSON,
+				'{"message no.": "2"}',
+				StreamMessage.SignatureType.SIGNATURE_TYPE_ETH,
+				"signature"
+		))
+		then:
+		conditions.eventually {
+			ArrayList<String> messageNumbers = new ArrayList<String>()
+			for(StreamMessage msg: receivedMessages) {
+				messageNumbers.add((String) msg.getContent().get("message no."))
+			}
+			assert messageNumbers == ["2"]
+		}
+
+		cleanup:
+		producer?.close()
+	}
 }

@@ -31,18 +31,15 @@ public class KafkaListener implements Runnable {
 
 	@Override
 	public void run() {
-		try {
-			while (true) {
-				ConsumerRecords<String, byte[]> records = consumer.poll(Long.MAX_VALUE); // wait indefinitely
-				for (ConsumerRecord<String, byte[]> record : records) {
+		while (true) {
+			ConsumerRecords<String, byte[]> records = consumer.poll(Long.MAX_VALUE); // wait indefinitely
+			for (ConsumerRecord<String, byte[]> record : records) {
+				try {
 					callback.accept(kafkaRecordTransformer.transform(record));
+				} catch (Throwable e) {
+					log.throwing(e);
 				}
 			}
-		} catch (Throwable e) {
-			log.throwing(e);
-		} finally {
-			log.info("Aborting...");
-			consumer.close();
 		}
 	}
 
