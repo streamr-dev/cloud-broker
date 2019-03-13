@@ -35,7 +35,7 @@ class KafkaRecordTransformerSpec extends Specification {
 		streamMessage.toBytes() == msg.toBytes()
 	}
 
-	void "transform() with version 29 returns StreamMessageV29"() {
+	void "transform() with version 29 returns StreamMessageV30"() {
 		StreamrBinaryMessage msg = new StreamrBinaryMessageV29(
 				"streamId",
 				5,
@@ -50,22 +50,22 @@ class KafkaRecordTransformerSpec extends Specification {
 		ConsumerRecord<String, byte[]> record = new ConsumerRecord<>("streamId", 7, 15, null, msg.toBytes())
 
 		when:
-		StreamMessageV29 streamMessage = (StreamMessageV29) transformer.transform(record)
+		StreamMessageV30 streamMessage = (StreamMessageV30) transformer.transform(record)
 
 		then: "message unaffected"
+		streamMessage.getVersion() == 30
 		streamMessage.getStreamId() == msg.getStreamId()
 		streamMessage.getStreamPartition() == msg.getPartition()
 		streamMessage.getTimestamp() == msg.getTimestamp()
-		streamMessage.getTtl() == msg.getTTL()
-		streamMessage.getOffset() == 15
+		streamMessage.getSequenceNumber() == 15
+		streamMessage.getPublisherId() == msg.getAddress()
 		streamMessage.getContentType().id == msg.getContentType()
 		streamMessage.getContent().get("key") == "value"
 		streamMessage.getSignatureType().id == msg.getSignatureType().id
-		streamMessage.getPublisherId() == msg.getAddress()
 		streamMessage.getSignature() == msg.getSignature()
 	}
 
-	void "transform() with version 28 returns StreamMessageV28"() {
+	void "transform() with version 28 returns StreamMessageV30"() {
 		StreamrBinaryMessage msg = new StreamrBinaryMessageV28(
 				"streamId",
 				5,
@@ -77,15 +77,18 @@ class KafkaRecordTransformerSpec extends Specification {
 		ConsumerRecord<String, byte[]> record = new ConsumerRecord<>("streamId", 7, 15, null, msg.toBytes())
 
 		when:
-		StreamMessageV28 streamMessage = (StreamMessageV28) transformer.transform(record)
+		StreamMessageV30 streamMessage = (StreamMessageV30) transformer.transform(record)
 
 		then: "message unaffected"
+		streamMessage.getVersion() == 30
 		streamMessage.getStreamId() == msg.getStreamId()
 		streamMessage.getStreamPartition() == msg.getPartition()
 		streamMessage.getTimestamp() == msg.getTimestamp()
-		streamMessage.getTtl() == msg.getTTL()
-		streamMessage.getOffset() == 15
+		streamMessage.getSequenceNumber() == 15
+		streamMessage.getPublisherId() == ""
 		streamMessage.getContentType().id == msg.getContentType()
 		streamMessage.getContent().get("key") == "value"
+		streamMessage.getSignatureType().id == StreamMessage.SignatureType.SIGNATURE_TYPE_NONE.id
+		streamMessage.getSignature() == null
 	}
 }
