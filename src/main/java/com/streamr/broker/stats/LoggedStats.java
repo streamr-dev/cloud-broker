@@ -23,6 +23,7 @@ public class LoggedStats implements Stats {
 
 	private long lastBytesRead = 0;
 	private long lastBytesWritten = 0;
+	private int lastEventsRead = 0;
 	private int lastEventsWritten = 0;
 	private long lastWriteErrors = 0;
 
@@ -62,11 +63,11 @@ public class LoggedStats implements Stats {
 			log.info("No new data.");
 		} else {
 			String lastDate = dateFormat.format(lastTimestamp);
-			double kbPackPresure = (totalBytesRead - totalBytesWritten) / 1000.0;
+			double kbPackPressure = (totalBytesRead - lastBytesRead) / 1000.0;
 			double kbReadSinceLastReport = (totalBytesRead - lastBytesWritten) / 1000.0;
 			double kbWrittenSinceLastReport = (totalBytesWritten - lastBytesWritten) / 1000.0;
 			long eventBackPressure = totalEventsRead - totalEventsWritten;
-			int eventsReadSinceLastReport = totalEventsRead - lastEventsWritten;
+			int eventsReadSinceLastReport = totalEventsRead - lastEventsRead;
 			int eventsWrittenSinceLastReport = totalEventsWritten - lastEventsWritten;
 			double kbWritePerSec = kbWrittenSinceLastReport / intervalInSec;
 			int eventWritePerSec = eventsWrittenSinceLastReport / intervalInSec;
@@ -76,6 +77,7 @@ public class LoggedStats implements Stats {
 
 			lastBytesRead = totalBytesRead;
 			lastBytesWritten = totalBytesWritten;
+			lastEventsRead = totalEventsRead;
 			lastEventsWritten = totalEventsWritten;
 			lastWriteErrors = totalWriteErrors;
 
@@ -86,7 +88,7 @@ public class LoggedStats implements Stats {
 				"\tWrite throughput {} kB/s or {} event/s\n" +
 				"\tWrite errors {}";
 
-			log.info(template, lastDate, kbPackPresure, eventBackPressure, kbReadPerSec, eventReadPerSec,
+			log.info(template, lastDate, kbPackPressure, eventBackPressure, kbReadPerSec, eventReadPerSec,
 					kbWritePerSec, eventWritePerSec, writeErrors);
 		}
 	}
