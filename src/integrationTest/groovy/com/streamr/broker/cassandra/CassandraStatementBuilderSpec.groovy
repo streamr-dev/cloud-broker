@@ -15,7 +15,7 @@ import java.nio.ByteBuffer
 
 class CassandraStatementBuilderSpec extends Specification {
 	@Shared
-	Cluster cluster = Cluster.builder().addContactPoint(Config.CASSANDRA_HOST).build()
+	Cluster cluster = Cluster.builder().addContactPoint(Config.CASSANDRA_HOSTS.split(",")[0]).build()
 
 	Session session
 	CassandraStatementBuilder builder
