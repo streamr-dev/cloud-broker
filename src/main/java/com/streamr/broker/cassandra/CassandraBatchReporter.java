@@ -32,10 +32,14 @@ public class CassandraBatchReporter implements Reporter {
 	private Stats stats;
 	private int failMultiplier = 1;
 
-	public CassandraBatchReporter(String cassandraHost, String cassandraKeySpace) {
+	public CassandraBatchReporter(String[] cassandraHosts, String cassandraKeySpace, String username, String password) {
 		Cluster cluster = null;
 		try {
-			cluster = Cluster.builder().addContactPoint(cassandraHost).build();
+			Cluster.Builder builder = Cluster.builder().withCredentials(username, password);
+			for(String host: cassandraHosts) {
+				builder = builder.addContactPoint(host);
+			}
+			cluster = builder.build();
 			session = cluster.connect(cassandraKeySpace);
 			cassandraSemaphore = new Semaphore(cluster.getConfiguration().getPoolingOptions().getMaxQueueSize(), true);
 			cassandraStatementBuilder = new CassandraStatementBuilder(session);
