@@ -25,8 +25,9 @@ class KafkaRecordTransformer {
 		StreamrBinaryMessage streamrBinaryMessage = StreamrBinaryMessageFactory.fromBytes(ByteBuffer.wrap(bytes));
 		Long previousOffset = offsetByStream.put(streamrBinaryMessage.getStreamId(), record.offset());
 		StreamMessage oldVersion = streamrBinaryMessage.toStreamrMessage(record.offset(), previousOffset);
+		String publisherId = oldVersion.getPublisherId() == null ? "" : oldVersion.getPublisherId();
 		MessageID id = new MessageID(oldVersion.getStreamId(), oldVersion.getStreamPartition(), oldVersion.getTimestamp(),
-				record.offset(), oldVersion.getPublisherId(), oldVersion.getMsgChainId());
+				record.offset(), publisherId, oldVersion.getMsgChainId());
 		StreamMessage.SignatureType signatureType = StreamMessage.SignatureType.SIGNATURE_TYPE_NONE;
 		String signature = null;
 		if (oldVersion.getVersion() == 29) {
