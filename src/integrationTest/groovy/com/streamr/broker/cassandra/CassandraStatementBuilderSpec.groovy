@@ -8,6 +8,7 @@ import com.streamr.client.protocol.message_layer.StreamMessageV28
 import com.streamr.client.protocol.message_layer.StreamMessageV29
 import com.streamr.client.protocol.message_layer.StreamMessageV30
 import groovy.transform.CompileStatic
+import jnr.x86asm.CONDITION
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -15,12 +16,17 @@ import java.nio.ByteBuffer
 
 class CassandraStatementBuilderSpec extends Specification {
 	@Shared
-	Cluster cluster = Cluster.builder().addContactPoint(Config.CASSANDRA_HOSTS.split(",")[0]).build()
+	Cluster cluster
 
 	Session session
 	CassandraStatementBuilder builder
 
 	void setup() {
+		Cluster.Builder clusterBuilder = Cluster.builder().withCredentials(Config.CASSANDRA_USERNAME, Config.CASSANDRA_PASSWORD)
+		for(String host: Config.CASSANDRA_HOSTS.split(",")) {
+			clusterBuilder = clusterBuilder.addContactPoint(host)
+		}
+		cluster = clusterBuilder.build()
 		session = cluster.connect(Config.CASSANDRA_KEYSPACE)
 		clearData(session)
 		builder = new CassandraStatementBuilder(session)
