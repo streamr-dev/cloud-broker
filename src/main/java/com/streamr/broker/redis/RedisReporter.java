@@ -21,8 +21,8 @@ public class RedisReporter implements Reporter {
 	private final RedisAsyncCommands<String, String> commands;
 	private Stats stats;
 
-	public RedisReporter(String host, String password) {
-		RedisURI uri = RedisURI.Builder.redis(host).withPassword(password).build();
+	public RedisReporter(String host, int port, String password) {
+		RedisURI uri = RedisURI.Builder.redis(host).withPort(port).withPassword(password).build();
 		client = RedisClient.create(uri);
 		pubSub = client.connectPubSub(new ByteArrayCodec()).async();
 		commands = client.connect().async();

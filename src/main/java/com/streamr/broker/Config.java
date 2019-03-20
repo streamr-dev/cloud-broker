@@ -5,6 +5,7 @@ public class Config {
 	public static final String KAFKA_GROUP = System.getProperty("kafka.group", "data-dev");
 	public static final String KAFKA_TOPIC = System.getProperty("kafka.topic", "data-dev");
 	public static final String REDIS_HOST = System.getProperty("redis.host", "127.0.0.1");
+	public static final int REDIS_PORT = Integer.parseInt(System.getProperty("redis.port", "6379"));
 	public static final String REDIS_PASSWORD = System.getProperty("redis.password", "");
 	public static final String CASSANDRA_HOSTS = System.getProperty("cassandra.hosts", "127.0.0.1");
 	public static final String CASSANDRA_KEYSPACE = System.getProperty("cassandra.keyspace", "streamr_dev");
