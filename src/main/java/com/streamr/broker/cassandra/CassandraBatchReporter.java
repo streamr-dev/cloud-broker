@@ -28,6 +28,7 @@ public class CassandraBatchReporter implements Reporter {
 	private final Session session;
 	private final CassandraStatementBuilder cassandraStatementBuilder;
 	private final Semaphore numOfMessagesSemaphore; // Ensure heap doesn't run out from too many messages
+	private final int cassandraMaxConnections;
 	private final Semaphore cassandraSemaphore;     // Ensure Cassandra doesn't explode from too many async queries
 	private Stats stats;
 	private int failMultiplier = 1;
@@ -42,7 +43,8 @@ public class CassandraBatchReporter implements Reporter {
 			}
 			cluster = builder.build();
 			session = cluster.connect(cassandraKeySpace);
-			cassandraSemaphore = new Semaphore(cluster.getConfiguration().getPoolingOptions().getMaxQueueSize(), true);
+			cassandraMaxConnections = cluster.getConfiguration().getPoolingOptions().getMaxQueueSize();
+			cassandraSemaphore = new Semaphore(cassandraMaxConnections, true);
 			cassandraStatementBuilder = new CassandraStatementBuilder(session);
 			numOfMessagesSemaphore = new Semaphore(MAX_MESSAGES_IN_MEMORY);
 			log.info("Cassandra session created for {} on keyspace '{}'", cluster.getMetadata().getAllHosts(),
@@ -107,6 +109,8 @@ public class CassandraBatchReporter implements Reporter {
 				failMultiplier = 1;
 				numOfMessagesSemaphore.release(messages.size());
 				cassandraSemaphore.release();
+				stats.setReservedMessageSemaphores(MAX_MESSAGES_IN_MEMORY - numOfMessagesSemaphore.availablePermits());
+				stats.setReservedCassandraSemaphores(cassandraMaxConnections - cassandraSemaphore.availablePermits());
 				log.info("Available permits in: numOfMessagesSemaphore: {}, cassandraSemaphore: {}",
 						numOfMessagesSemaphore.availablePermits(), cassandraSemaphore.availablePermits());
 				for (StreamMessage msg : messages) {

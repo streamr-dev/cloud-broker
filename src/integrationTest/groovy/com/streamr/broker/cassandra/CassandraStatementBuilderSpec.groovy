@@ -8,7 +8,6 @@ import com.streamr.client.protocol.message_layer.StreamMessageV28
 import com.streamr.client.protocol.message_layer.StreamMessageV29
 import com.streamr.client.protocol.message_layer.StreamMessageV30
 import groovy.transform.CompileStatic
-import jnr.x86asm.CONDITION
 import spock.lang.Shared
 import spock.lang.Specification
 

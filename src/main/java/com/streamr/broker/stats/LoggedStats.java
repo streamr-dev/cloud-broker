@@ -27,6 +27,18 @@ public class LoggedStats implements Stats {
 	private int lastEventsWritten = 0;
 	private long lastWriteErrors = 0;
 
+	private int reservedMessageSemaphores = 0;
+	private int reservedCassandraSemaphores = 0;
+
+	private static final String TEMPLATE = "\n" +
+			"\tLast timestamp {}\n" +
+			"\tBackpressure {} kB / {} events\n" +
+			"\tRead throughput {} kB/s or {} event/s\n" +
+			"\tWrite throughput {} kB/s or {} event/s\n" +
+			"\tWrite errors {}\n" +
+			"\tReserved message semaphores: {}\n" +
+			"\tReserved cassandra semaphores: {}";
+
 	@Override
 	public void start(int intervalInSec) {
 		this.intervalInSec = intervalInSec;
@@ -81,15 +93,19 @@ public class LoggedStats implements Stats {
 			lastEventsWritten = totalEventsWritten;
 			lastWriteErrors = totalWriteErrors;
 
-			String template = "\n" +
-				"\tLast timestamp {}\n" +
-				"\tBackpressure {} kB / {} events\n" +
-				"\tRead throughput {} kB/s or {} event/s\n" +
-				"\tWrite throughput {} kB/s or {} event/s\n" +
-				"\tWrite errors {}";
-
-			log.info(template, lastDate, kbBackPressure, eventBackPressure, kbReadPerSec, eventReadPerSec,
-					kbWritePerSec, eventWritePerSec, writeErrors);
+			log.info(TEMPLATE, lastDate, kbBackPressure, eventBackPressure, kbReadPerSec, eventReadPerSec,
+					kbWritePerSec, eventWritePerSec, writeErrors, reservedMessageSemaphores, reservedCassandraSemaphores);
 		}
 	}
+
+	@Override
+	public void setReservedMessageSemaphores(int reservedMessageSemaphores) {
+		this.reservedMessageSemaphores = reservedMessageSemaphores;
+	}
+
+	@Override
+	public void setReservedCassandraSemaphores(int reservedCassandraSemaphores) {
+		this.reservedCassandraSemaphores = reservedCassandraSemaphores;
+	}
+
 }

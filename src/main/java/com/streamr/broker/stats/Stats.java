@@ -10,4 +10,7 @@ public interface Stats {
 	void start(int intervalInSec);
 	void stop();
 	void report();
+
+	void setReservedMessageSemaphores(int reservedMessageSemaphores);
+	void setReservedCassandraSemaphores(int reservedCassandraSemaphores);
 }
