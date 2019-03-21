@@ -35,7 +35,8 @@ public class CassandraBatchReporter implements Reporter {
 	public CassandraBatchReporter(String[] cassandraHosts, String cassandraKeySpace, String username, String password) {
 		Cluster cluster = null;
 		try {
-			Cluster.Builder builder = Cluster.builder().withCredentials(username, password);
+			Cluster.Builder builder = Cluster.builder().withCredentials(username, password)
+					.withQueryOptions(new QueryOptions().setConsistencyLevel(ConsistencyLevel.ONE));
 			for(String host: cassandraHosts) {
 				builder = builder.addContactPoint(host);
 			}
