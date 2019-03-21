@@ -107,6 +107,8 @@ public class CassandraBatchReporter implements Reporter {
 				failMultiplier = 1;
 				numOfMessagesSemaphore.release(messages.size());
 				cassandraSemaphore.release();
+				log.info("Available permits in: numOfMessagesSemaphore: {}, cassandraSemaphore: {}",
+						numOfMessagesSemaphore.availablePermits(), cassandraSemaphore.availablePermits());
 				for (StreamMessage msg : messages) {
 					stats.onWrittenToCassandra(msg);
 				}
