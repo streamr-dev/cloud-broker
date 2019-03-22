@@ -19,6 +19,7 @@ public class LoggedStats implements Stats {
 	private AtomicLong totalBytesWritten = new AtomicLong(0);
 	private AtomicLong totalEventsRead = new AtomicLong(0);
 	private AtomicLong totalEventsWritten = new AtomicLong(0);
+	private AtomicLong totalEventsWrittenRedis = new AtomicLong(0);
 	private AtomicLong totalWriteErrors = new AtomicLong(0);
 
 	private long lastBytesRead = 0;
@@ -62,7 +63,9 @@ public class LoggedStats implements Stats {
 	}
 
 	@Override
-	public void onWrittenToRedis(StreamMessage msg) {}
+	public void onWrittenToRedis(StreamMessage msg) {
+		totalEventsWrittenRedis.incrementAndGet();
+	}
 
 	@Override
 	public void onCassandraWriteError() {
@@ -126,6 +129,10 @@ public class LoggedStats implements Stats {
 
 	public long getTotalEventsWritten() {
 		return totalEventsWritten.get();
+	}
+
+	public long getTotalEventsWrittenRedis() {
+		return totalEventsWrittenRedis.get();
 	}
 
 	public long getTotalWriteErrors() {

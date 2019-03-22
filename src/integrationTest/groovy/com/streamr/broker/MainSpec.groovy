@@ -93,6 +93,19 @@ class MainSpec extends Specification {
 			)
 		}
 
+		then: "all data points have been read from Kafka"
+		new PollingConditions(timeout: 30).eventually {
+			assert Main.getStats().getTotalEventsRead() == 500
+		}
+		and: "all data points have been written to Cassandra"
+		new PollingConditions(timeout: 30).eventually {
+			assert Main.getStats().getTotalEventsWritten() == 500
+		}
+		and: "all data points have been written to Redis"
+		new PollingConditions(timeout: 30).eventually {
+			assert Main.getStats().getTotalEventsWrittenRedis() == 500
+		}
+
 		then: "all data points are published into Redis Pub/Sub"
 		new PollingConditions(timeout: 30).eventually {
 			assert receivedMessages.size() == 500
