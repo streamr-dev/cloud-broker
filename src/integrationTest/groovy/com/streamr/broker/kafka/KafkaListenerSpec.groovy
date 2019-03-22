@@ -1,11 +1,7 @@
 package com.streamr.broker.kafka
 
 import com.google.gson.GsonBuilder
-import com.streamr.broker.Config
-import com.streamr.broker.KafkaDataProducer
-import com.streamr.broker.StreamrBinaryMessage
-import com.streamr.broker.StreamrBinaryMessageV28
-import com.streamr.broker.StreamrBinaryMessageV29
+import com.streamr.broker.*
 import com.streamr.client.protocol.message_layer.StreamMessage
 import com.streamr.client.protocol.message_layer.StreamMessageV30
 import spock.lang.Specification
@@ -15,17 +11,20 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 class KafkaListenerSpec extends Specification {
-	final static String testId = "KafkaListenerSpec-" + System.currentTimeMillis()
-	final static String GROUP_ID = "cloud-broker-integration-test-group" + System.currentTimeMillis()
+	String testId
+	String groupId
 
 	ExecutorService executor
 	List<StreamMessage> receivedMessages
 	KafkaListener kafkaListener
 
 	void setup() {
+		testId = "KafkaListenerSpec-" + System.currentTimeMillis()
+		groupId = "cloud-broker-integration-test-group" + System.currentTimeMillis()
+
 		executor = Executors.newSingleThreadExecutor()
 		receivedMessages = []
-		kafkaListener = new KafkaListener(Config.KAFKA_HOST, GROUP_ID, Config.KAFKA_TOPIC, { msg ->
+		kafkaListener = new KafkaListener(Config.KAFKA_HOST, groupId, Config.KAFKA_TOPIC, { msg ->
 			// Filter messages belonging to this test in case other messages are published on the topic too
 			if (msg.getContent().testId == testId) {
 				receivedMessages.add(msg)
@@ -105,7 +104,7 @@ class KafkaListenerSpec extends Specification {
 
 	void "keeps going even when receiving invalid records"() {
 		List<StreamMessage> receivedMessages = []
-		KafkaListener kafkaListener = new KafkaListener(Config.KAFKA_HOST, GROUP_ID, Config.KAFKA_TOPIC, { msg ->
+		KafkaListener kafkaListener = new KafkaListener(Config.KAFKA_HOST, groupId, Config.KAFKA_TOPIC, { msg ->
 			if (msg.getContent().testId == testId) {
 				receivedMessages.add(msg)
 			}
