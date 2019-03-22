@@ -12,9 +12,14 @@ env:
 jobs:
   include:
   - stage: Unit tests
-    name: Gradle Tests
     script:
     - "./gradlew test --stacktrace --info"
+  - stage: Integration tests
+    script:
+    - git clone https://github.com/streamr-dev/streamr-docker-dev.git
+    - "$TRAVIS_BUILD_DIR/streamr-docker-dev/streamr-docker-dev/bin.sh start kafka cassandra redis"
+    - sleep 1m
+    - "./gradlew integrationTest --stacktrace --info"
   - stage: Staging
     if: tag IS blank
     name: Build Broker
