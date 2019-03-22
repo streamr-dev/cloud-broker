@@ -6,8 +6,8 @@ import org.apache.logging.log4j.Logger;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.concurrent.atomic.AtomicLong;
 
-// TODO: synchronization
 public class LoggedStats implements Stats {
 	private static final Logger log = LogManager.getLogger();
 	private static final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -15,17 +15,16 @@ public class LoggedStats implements Stats {
 	private int intervalInSec = -1;
 
 	private long lastTimestamp = 0;
-	private long totalBytesRead = 0;
-	private long totalBytesWritten = 0;
-	private int totalEventsRead = 0;
-	private int totalEventsReported = 0;
-	private int totalEventsWritten = 0;
-	private long totalWriteErrors = 0;
+	private AtomicLong totalBytesRead = new AtomicLong(0);
+	private AtomicLong totalBytesWritten = new AtomicLong(0);
+	private AtomicLong totalEventsRead = new AtomicLong(0);
+	private AtomicLong totalEventsWritten = new AtomicLong(0);
+	private AtomicLong totalWriteErrors = new AtomicLong(0);
 
 	private long lastBytesRead = 0;
 	private long lastBytesWritten = 0;
-	private int lastEventsRead = 0;
-	private int lastEventsWritten = 0;
+	private long lastEventsRead = 0;
+	private long lastEventsWritten = 0;
 	private long lastWriteErrors = 0;
 
 	private int reservedMessageSemaphores = 0;
@@ -34,7 +33,6 @@ public class LoggedStats implements Stats {
 	private static final String TEMPLATE = "\n" +
 			"\tLast timestamp {}\n" +
 			"\tBackpressure {} kB / {} events\n" +
-			"\tUnwritten but reported {} events\n" +
 			"\tRead throughput {} kB/s or {} event/s\n" +
 			"\tWrite throughput {} kB/s or {} event/s\n" +
 			"\tWrite errors {}\n" +
@@ -52,20 +50,15 @@ public class LoggedStats implements Stats {
 
 	@Override
 	public void onReadFromKafka(StreamMessage msg) {
-		totalEventsRead++;
-		totalBytesRead += msg.sizeInBytes();
+		totalEventsRead.incrementAndGet();
+		totalBytesRead.addAndGet(msg.sizeInBytes());
 		lastTimestamp = msg.getTimestamp();
 	}
 
 	@Override
-	public void onReportedToCassandra(StreamMessage msg) {
-		totalEventsReported++;
-	}
-
-	@Override
 	public void onWrittenToCassandra(StreamMessage msg) {
-		totalEventsWritten++;
-		totalBytesWritten += msg.sizeInBytes();
+		totalEventsWritten.incrementAndGet();
+		totalBytesWritten.addAndGet(msg.sizeInBytes());
 	}
 
 	@Override
@@ -73,35 +66,34 @@ public class LoggedStats implements Stats {
 
 	@Override
 	public void onCassandraWriteError() {
-		totalWriteErrors++;
+		totalWriteErrors.incrementAndGet();
 	}
 
 	@Override
 	public void report() {
-		if (lastBytesRead == totalBytesRead) {
+		if (lastBytesRead == totalBytesRead.get()) {
 			log.info("No new data.");
 		} else {
 			String lastDate = dateFormat.format(lastTimestamp);
-			double kbBackPressure = (totalBytesRead - totalBytesWritten) / 1000.0;
-			double kbReadSinceLastReport = (totalBytesRead - lastBytesRead) / 1000.0;
-			double kbWrittenSinceLastReport = (totalBytesWritten - lastBytesWritten) / 1000.0;
-			long eventBackPressure = totalEventsRead - totalEventsWritten;
-			int reportedButUnwrittenEvents = totalEventsReported - totalEventsWritten;
-			int eventsReadSinceLastReport = totalEventsRead - lastEventsRead;
-			int eventsWrittenSinceLastReport = totalEventsWritten - lastEventsWritten;
+			double kbBackPressure = (totalBytesRead.get() - totalBytesWritten.get()) / 1000.0;
+			double kbReadSinceLastReport = (totalBytesRead.get() - lastBytesRead) / 1000.0;
+			double kbWrittenSinceLastReport = (totalBytesWritten.get() - lastBytesWritten) / 1000.0;
+			long eventBackPressure = totalEventsRead.get() - totalEventsWritten.get();
+			long eventsReadSinceLastReport = totalEventsRead.get() - lastEventsRead;
+			long eventsWrittenSinceLastReport = totalEventsWritten.get() - lastEventsWritten;
 			double kbWritePerSec = kbWrittenSinceLastReport / intervalInSec;
-			int eventWritePerSec = eventsWrittenSinceLastReport / intervalInSec;
+			long eventWritePerSec = eventsWrittenSinceLastReport / intervalInSec;
 			double kbReadPerSec = kbReadSinceLastReport / intervalInSec;
-			int eventReadPerSec = eventsReadSinceLastReport / intervalInSec;
-			long writeErrors = totalWriteErrors - lastWriteErrors;
+			long eventReadPerSec = eventsReadSinceLastReport / intervalInSec;
+			long writeErrors = totalWriteErrors.get() - lastWriteErrors;
 
-			lastBytesRead = totalBytesRead;
-			lastBytesWritten = totalBytesWritten;
-			lastEventsRead = totalEventsRead;
-			lastEventsWritten = totalEventsWritten;
-			lastWriteErrors = totalWriteErrors;
+			lastBytesRead = totalBytesRead.get();
+			lastBytesWritten = totalBytesWritten.get();
+			lastEventsRead = totalEventsRead.get();
+			lastEventsWritten = totalEventsWritten.get();
+			lastWriteErrors = totalWriteErrors.get();
 
-			log.info(TEMPLATE, lastDate, kbBackPressure, eventBackPressure, reportedButUnwrittenEvents, kbReadPerSec, eventReadPerSec,
+			log.info(TEMPLATE, lastDate, kbBackPressure, eventBackPressure, kbReadPerSec, eventReadPerSec,
 					kbWritePerSec, eventWritePerSec, writeErrors, reservedMessageSemaphores, reservedCassandraSemaphores);
 		}
 	}

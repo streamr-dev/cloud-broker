@@ -66,7 +66,7 @@ public class CassandraBatchReporter implements Reporter {
 	@Override
 	public void report(StreamMessage msg) {
 		numOfMessagesSemaphore.acquireUninterruptibly();
-		stats.onReportedToCassandra(msg);
+		stats.addReportedToCassandra(msg);
 		String key = formKey(msg);
 		synchronized (batches) {
 			Batch batch = batches.get(key);
@@ -112,9 +112,11 @@ public class CassandraBatchReporter implements Reporter {
 				cassandraSemaphore.release();
 				stats.setReservedMessageSemaphores(MAX_MESSAGES_IN_MEMORY - numOfMessagesSemaphore.availablePermits());
 				stats.setReservedCassandraSemaphores(cassandraMaxConnections - cassandraSemaphore.availablePermits());
+				/*
 				for (StreamMessage msg : messages) {
 					stats.onWrittenToCassandra(msg);
 				}
+				*/
 			}
 
 			@Override
