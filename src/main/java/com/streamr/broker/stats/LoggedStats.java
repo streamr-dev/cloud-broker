@@ -18,6 +18,7 @@ public class LoggedStats implements Stats {
 	private long totalBytesRead = 0;
 	private long totalBytesWritten = 0;
 	private int totalEventsRead = 0;
+	private int totalEventsReported = 0;
 	private int totalEventsWritten = 0;
 	private long totalWriteErrors = 0;
 
@@ -33,6 +34,7 @@ public class LoggedStats implements Stats {
 	private static final String TEMPLATE = "\n" +
 			"\tLast timestamp {}\n" +
 			"\tBackpressure {} kB / {} events\n" +
+			"\tUnwritten but reported {} events\n" +
 			"\tRead throughput {} kB/s or {} event/s\n" +
 			"\tWrite throughput {} kB/s or {} event/s\n" +
 			"\tWrite errors {}\n" +
@@ -53,6 +55,11 @@ public class LoggedStats implements Stats {
 		totalEventsRead++;
 		totalBytesRead += msg.sizeInBytes();
 		lastTimestamp = msg.getTimestamp();
+	}
+
+	@Override
+	public void onReportedToCassandra(StreamMessage msg) {
+		totalEventsReported++;
 	}
 
 	@Override
@@ -79,6 +86,7 @@ public class LoggedStats implements Stats {
 			double kbReadSinceLastReport = (totalBytesRead - lastBytesRead) / 1000.0;
 			double kbWrittenSinceLastReport = (totalBytesWritten - lastBytesWritten) / 1000.0;
 			long eventBackPressure = totalEventsRead - totalEventsWritten;
+			int reportedButUnwrittenEvents = totalEventsReported - totalEventsWritten;
 			int eventsReadSinceLastReport = totalEventsRead - lastEventsRead;
 			int eventsWrittenSinceLastReport = totalEventsWritten - lastEventsWritten;
 			double kbWritePerSec = kbWrittenSinceLastReport / intervalInSec;
@@ -93,7 +101,7 @@ public class LoggedStats implements Stats {
 			lastEventsWritten = totalEventsWritten;
 			lastWriteErrors = totalWriteErrors;
 
-			log.info(TEMPLATE, lastDate, kbBackPressure, eventBackPressure, kbReadPerSec, eventReadPerSec,
+			log.info(TEMPLATE, lastDate, kbBackPressure, eventBackPressure, reportedButUnwrittenEvents, kbReadPerSec, eventReadPerSec,
 					kbWritePerSec, eventWritePerSec, writeErrors, reservedMessageSemaphores, reservedCassandraSemaphores);
 		}
 	}
