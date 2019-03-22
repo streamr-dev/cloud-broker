@@ -111,11 +111,9 @@ public class CassandraBatchReporter implements Reporter {
 				cassandraSemaphore.release();
 				stats.setReservedMessageSemaphores(MAX_MESSAGES_IN_MEMORY - numOfMessagesSemaphore.availablePermits());
 				stats.setReservedCassandraSemaphores(cassandraMaxConnections - cassandraSemaphore.availablePermits());
-				/*
 				for (StreamMessage msg : messages) {
 					stats.onWrittenToCassandra(msg);
 				}
-				*/
 			}
 
 			@Override
