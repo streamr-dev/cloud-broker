@@ -52,6 +52,9 @@ class MainSpec extends Specification {
 
 		Main.main(new String[0])
 
+		// Allow some time for the broker to connect to Kafka
+		Thread.sleep(10 * 1000)
+
 		when: "500 new data points arrive to Kafka"
 		(1..100).each {
 			dataProducer.produceToKafka(new StreamrBinaryMessageV28(
