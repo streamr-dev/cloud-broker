@@ -1,5 +1,6 @@
 package com.streamr.broker.kafka
 
+import com.google.gson.GsonBuilder
 import com.streamr.broker.Config
 import com.streamr.broker.KafkaDataProducer
 import com.streamr.broker.StreamrBinaryMessage
@@ -14,49 +15,45 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 class KafkaListenerSpec extends Specification {
+	final static String testId = "KafkaListenerSpec-" + System.currentTimeMillis()
 	final static String GROUP_ID = "cloud-broker-integration-test-group" + System.currentTimeMillis()
-	final static String DATA_TOPIC = "temporary-broker-topic-" + System.currentTimeMillis()
-	ExecutorService executor = Executors.newSingleThreadExecutor()
 
-	void setupSpec() {
-		// Intentional: Auto-create topic by connecting and producing
-		def p = new KafkaDataProducer(Config.KAFKA_HOST, DATA_TOPIC)
-		p.produceToKafka(new StreamrBinaryMessageV29(
-				"sss",
-				0,
-				0L,
-				0,
-				StreamrBinaryMessage.CONTENT_TYPE_JSON,
-				"".bytes,
-				StreamrBinaryMessage.SignatureType.SIGNATURE_TYPE_NONE,
-				"",
-				""))
-		p.close()
+	ExecutorService executor
+	List<StreamMessage> receivedMessages
+	KafkaListener kafkaListener
+
+	void setup() {
+		executor = Executors.newSingleThreadExecutor()
+		receivedMessages = []
+		kafkaListener = new KafkaListener(Config.KAFKA_HOST, GROUP_ID, Config.KAFKA_TOPIC, { msg ->
+			// Filter messages belonging to this test in case other messages are published on the topic too
+			if (msg.getContent().testId == testId) {
+				receivedMessages.add(msg)
+			}
+		})
 	}
 
 	void cleanup() {
 		executor.shutdownNow()
 	}
 
-	void "async callback invoked for received records"() {
-		List<StreamMessage> receivedMessages = []
-		KafkaListener kafkaListener = new KafkaListener(Config.KAFKA_HOST, GROUP_ID, DATA_TOPIC, { msg ->
-			receivedMessages.add(msg)
-		})
-		def conditions = new PollingConditions(timeout: 10, initialDelay: 1.5)
+	byte[] messageToBytes(Map msg) {
+		return new GsonBuilder().create().toJson(msg).bytes
+	}
 
+	void "async callback invoked for received records"() {
 		when:
 		executor.execute(kafkaListener)
 
 		and:
-		KafkaDataProducer producer = new KafkaDataProducer(Config.KAFKA_HOST, DATA_TOPIC)
+		KafkaDataProducer producer = new KafkaDataProducer(Config.KAFKA_HOST, Config.KAFKA_TOPIC)
 		producer.produceToKafka(new StreamrBinaryMessageV28(
 				"streamId",
 				0,
 				System.currentTimeMillis(),
 				0,
 				StreamrBinaryMessage.CONTENT_TYPE_JSON,
-				('{"message no.": "1"}').bytes,
+				messageToBytes(["message no.": "1", testId: testId])
 		))
 		producer.produceToKafka(new StreamrBinaryMessageV29(
 				"streamId",
@@ -64,7 +61,7 @@ class KafkaListenerSpec extends Specification {
 				System.currentTimeMillis(),
 				0,
 				StreamrBinaryMessage.CONTENT_TYPE_JSON,
-				('{"message no.": "2"}').bytes,
+				messageToBytes(["message no.": "2", testId: testId]),
 				StreamrBinaryMessage.SignatureType.SIGNATURE_TYPE_NONE,
 				"",
 				""
@@ -80,7 +77,7 @@ class KafkaListenerSpec extends Specification {
 				System.currentTimeMillis() - 1000,
 				0,
 				StreamMessage.ContentType.CONTENT_TYPE_JSON,
-				'{"message no.": "'+it+'"}',
+				["message no.": it.toString(), testId: testId],
 				StreamMessage.SignatureType.SIGNATURE_TYPE_ETH,
 				"signature"
 			)
@@ -88,9 +85,9 @@ class KafkaListenerSpec extends Specification {
 		}
 
 		then:
-		conditions.eventually {
+		new PollingConditions(timeout: 10, initialDelay: 1.5).eventually {
 			ArrayList<String> messageNumbers = new ArrayList<String>()
-			for(StreamMessage msg: receivedMessages) {
+			for (StreamMessage msg: receivedMessages) {
 				messageNumbers.add((String) msg.getContent().get("message no."))
 			}
 			assert messageNumbers == [
@@ -108,16 +105,17 @@ class KafkaListenerSpec extends Specification {
 
 	void "keeps going even when receiving invalid records"() {
 		List<StreamMessage> receivedMessages = []
-		KafkaListener kafkaListener = new KafkaListener(Config.KAFKA_HOST, GROUP_ID, DATA_TOPIC, { msg ->
-			receivedMessages.add(msg)
+		KafkaListener kafkaListener = new KafkaListener(Config.KAFKA_HOST, GROUP_ID, Config.KAFKA_TOPIC, { msg ->
+			if (msg.getContent().testId == testId) {
+				receivedMessages.add(msg)
+			}
 		})
-		def conditions = new PollingConditions(timeout: 10, initialDelay: 1.5)
 
 		when:
 		executor.execute(kafkaListener)
 
 		and:
-		KafkaDataProducer producer = new KafkaDataProducer(Config.KAFKA_HOST, DATA_TOPIC)
+		KafkaDataProducer producer = new KafkaDataProducer(Config.KAFKA_HOST, Config.KAFKA_TOPIC)
 		producer.produceToKafka(new StreamMessageV30(
 				null,
 				0,
@@ -147,7 +145,7 @@ class KafkaListenerSpec extends Specification {
 				"signature"
 		))
 		then:
-		conditions.eventually {
+		new PollingConditions(timeout: 30, initialDelay: 1.5).eventually {
 			ArrayList<String> messageNumbers = new ArrayList<String>()
 			for(StreamMessage msg: receivedMessages) {
 				messageNumbers.add((String) msg.getContent().get("message no."))

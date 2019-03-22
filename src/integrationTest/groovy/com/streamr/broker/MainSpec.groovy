@@ -9,6 +9,7 @@ import com.lambdaworks.redis.pubsub.api.sync.RedisPubSubCommands
 import com.streamr.client.protocol.message_layer.StreamMessage
 import com.streamr.client.protocol.message_layer.StreamMessageV30
 import groovy.transform.CompileStatic
+import org.spockframework.runtime.SpockTimeoutError
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.util.concurrent.PollingConditions
@@ -93,12 +94,12 @@ class MainSpec extends Specification {
 		}
 
 		then: "all data points are published into Redis Pub/Sub"
-		new PollingConditions(timeout: 5).eventually {
+		new PollingConditions(timeout: 30).eventually {
 			assert receivedMessages.size() == 500
 		}
 
 		and: "all data points are stored into Cassandra"
-		new PollingConditions(timeout: 10, initialDelay: 1, delay: 0.5).eventually {
+		new PollingConditions(timeout: 30, initialDelay: 1, delay: 0.5).eventually {
 			assert fetchFromCassandra(streamId).size() == 500
 		}
 
