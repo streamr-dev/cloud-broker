@@ -66,7 +66,6 @@ public class CassandraBatchReporter implements Reporter {
 	@Override
 	public void report(StreamMessage msg) {
 		numOfMessagesSemaphore.acquireUninterruptibly();
-		stats.addReportedToCassandra(msg);
 		String key = formKey(msg);
 		synchronized (batches) {
 			Batch batch = batches.get(key);
