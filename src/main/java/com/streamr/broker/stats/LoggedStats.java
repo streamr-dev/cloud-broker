@@ -108,4 +108,43 @@ public class LoggedStats implements Stats {
 		this.reservedCassandraSemaphores = reservedCassandraSemaphores;
 	}
 
+	public long getLastTimestamp() {
+		return lastTimestamp;
+	}
+
+	public long getTotalBytesRead() {
+		return totalBytesRead.get();
+	}
+
+	public long getTotalBytesWritten() {
+		return totalBytesWritten.get();
+	}
+
+	public long getTotalEventsRead() {
+		return totalEventsRead.get();
+	}
+
+	public long getTotalEventsWritten() {
+		return totalEventsWritten.get();
+	}
+
+	public long getTotalWriteErrors() {
+		return totalWriteErrors.get();
+	}
+
+	public long getLastBytesRead() {
+		return lastBytesRead;
+	}
+
+	public long getLastBytesWritten() {
+		return lastBytesWritten;
+	}
+
+	public long getLastEventsWritten() {
+		return lastEventsWritten;
+	}
+
+	public long getLastWriteErrors() {
+		return lastWriteErrors;
+	}
 }

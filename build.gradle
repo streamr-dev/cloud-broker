@@ -43,6 +43,7 @@ repositories {
 	maven {
 		url "https://oss.sonatype.org/content/groups/public"
 	}
+	// Needed for ethereumj transitive dependency from com.streamr.client
 	maven {
 		url "https://dl.bintray.com/ethereum/maven/"
 	}

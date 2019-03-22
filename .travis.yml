@@ -48,6 +48,17 @@ jobs:
     env:
     - OWNER=streamr
     - IMAGE_NAME=cloud-broker
+    - TAG=dev
+    script:
+    - docker build -t $OWNER/$IMAGE_NAME:$TAG .
+    deploy:
+    - provider: script
+      script: bash .travis_scripts/deploy_docker.sh staging
+  - stage: Build docker (stg)
+    if: tag IS blank
+    env:
+    - OWNER=streamr
+    - IMAGE_NAME=cloud-broker
     - TAG=stg
     script:
     - docker build -t $OWNER/$IMAGE_NAME:$TAG .

@@ -6,6 +6,7 @@ import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.core.*
 import org.apache.logging.log4j.core.appender.DefaultErrorHandler
 import spock.lang.Specification
+import spock.util.concurrent.PollingConditions
 
 import java.text.SimpleDateFormat
 
@@ -66,6 +67,34 @@ class LoggedStatsSpec extends Specification {
 				"\tWrite errors 1",
 			"No new data."
 		]
+	}
+
+	void "logger is thread-safe"() {
+		final int sizeInBytes = ExampleData.MESSAGE_1.sizeInBytes()
+		final int THREAD_COUNT = 100
+		final int MESSAGE_COUNT = 1000
+
+		// Create 100 threads to concurrently modify counters
+		List<Thread> threads = (1..THREAD_COUNT).collect {
+			return Thread.start {
+				(1..MESSAGE_COUNT).each {
+					loggedStats.onReadFromKafka(ExampleData.MESSAGE_1)
+					loggedStats.onWrittenToCassandra(ExampleData.MESSAGE_1)
+					loggedStats.onWrittenToRedis(ExampleData.MESSAGE_1)
+				}
+			}
+		}
+
+		// Wait for all threads to finish
+		new PollingConditions(timeout: 5).eventually {
+			threads.find { it.isAlive() } == null
+		}
+
+		expect:
+		loggedStats.getTotalEventsRead() == THREAD_COUNT * MESSAGE_COUNT
+		loggedStats.getTotalBytesRead() == THREAD_COUNT * MESSAGE_COUNT * sizeInBytes
+		loggedStats.getTotalEventsWritten() == THREAD_COUNT * MESSAGE_COUNT
+		loggedStats.getTotalBytesWritten() == THREAD_COUNT * MESSAGE_COUNT * sizeInBytes
 	}
 
 	@CompileStatic
