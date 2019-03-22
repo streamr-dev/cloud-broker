@@ -7,6 +7,7 @@ import com.streamr.client.protocol.message_layer.StreamMessageV30
 import spock.lang.Specification
 import spock.util.concurrent.PollingConditions
 
+import java.nio.charset.StandardCharsets
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -115,20 +116,9 @@ class KafkaListenerSpec extends Specification {
 
 		and:
 		KafkaDataProducer producer = new KafkaDataProducer(Config.KAFKA_HOST, Config.KAFKA_TOPIC)
-		producer.produceToKafka(new StreamMessageV30(
-				null,
-				0,
-				System.currentTimeMillis(),
-				0,
-				"publisherId",
-				"msgChainId",
-				System.currentTimeMillis() - 1000,
-				0,
-				StreamMessage.ContentType.CONTENT_TYPE_JSON,
-				'{"message no.": "1"}',
-				StreamMessage.SignatureType.SIGNATURE_TYPE_ETH,
-				"signature"
-		))
+		String content = '{"message no.": "1"}'
+		String invalidMsg = "[30,[null,0,1528228173462,0,\"publisherId\",\"1\"],null,27,\\\"$content\\\",0,null]"
+		producer.produceToKafka("-0", invalidMsg.getBytes(StandardCharsets.UTF_8))
 		producer.produceToKafka(new StreamMessageV30(
 				"streamId",
 				0,
@@ -139,7 +129,7 @@ class KafkaListenerSpec extends Specification {
 				System.currentTimeMillis() - 1000,
 				0,
 				StreamMessage.ContentType.CONTENT_TYPE_JSON,
-				'{"message no.": "2"}',
+				["message no.": "2", testId: testId],
 				StreamMessage.SignatureType.SIGNATURE_TYPE_ETH,
 				"signature"
 		))

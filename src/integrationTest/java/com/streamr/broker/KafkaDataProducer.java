@@ -36,7 +36,11 @@ public class KafkaDataProducer implements Closeable {
 
 	public void produceToKafka(StreamMessage msg) {
 		String kafkaPartitionKey = msg.getStreamId() +  "-" + msg.getStreamPartition();
-		ProducerRecord<String, byte[]> record = new ProducerRecord<>(dataTopic, kafkaPartitionKey, msg.toBytes());
+		produceToKafka(kafkaPartitionKey, msg.toBytes());
+	}
+
+	public void produceToKafka(String kafkaPartitionKey, byte[] bytes) {
+		ProducerRecord<String, byte[]> record = new ProducerRecord<>(dataTopic, kafkaPartitionKey, bytes);
 		producer.send(record);
 		log.info("Produced to '{}'", dataTopic);
 	}
