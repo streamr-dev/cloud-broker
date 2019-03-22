@@ -90,4 +90,44 @@ public class LoggedStats implements Stats {
 					kbWritePerSec, eventWritePerSec, writeErrors);
 		}
 	}
+
+	public long getLastTimestamp() {
+		return lastTimestamp;
+	}
+
+	public long getTotalBytesRead() {
+		return totalBytesRead;
+	}
+
+	public long getTotalBytesWritten() {
+		return totalBytesWritten;
+	}
+
+	public int getTotalEventsRead() {
+		return totalEventsRead;
+	}
+
+	public int getTotalEventsWritten() {
+		return totalEventsWritten;
+	}
+
+	public long getTotalWriteErrors() {
+		return totalWriteErrors;
+	}
+
+	public long getLastBytesRead() {
+		return lastBytesRead;
+	}
+
+	public long getLastBytesWritten() {
+		return lastBytesWritten;
+	}
+
+	public int getLastEventsWritten() {
+		return lastEventsWritten;
+	}
+
+	public long getLastWriteErrors() {
+		return lastWriteErrors;
+	}
 }
