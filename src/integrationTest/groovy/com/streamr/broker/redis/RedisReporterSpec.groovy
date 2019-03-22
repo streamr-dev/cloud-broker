@@ -105,6 +105,12 @@ class RedisReporterSpec extends Specification {
 
 			@Override
 			void onCassandraWriteError() {}
+
+			@Override
+			void setReservedMessageSemaphores(int reservedMessageSemaphores) {}
+
+			@Override
+			void setReservedCassandraSemaphores(int reservedCassandraSemaphores) {}
 		})
 
 		when:

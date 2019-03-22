@@ -26,12 +26,16 @@ class MainSpec extends Specification {
 	)
 
 	@Shared
-	Cluster cassandraCluster = Cluster.builder()
-		.addContactPoint(Config.CASSANDRA_HOST)
-		.build()
+	Cluster cassandraCluster
 
 	@Shared
 	String streamId = "MainSpec" + System.currentTimeMillis()
+
+	void setupSpec() {
+		Cluster.Builder builder = Cluster.builder()
+		Config.getCassandraHosts().each { builder.addContactPoint(it) }
+		cassandraCluster = builder.build()
+	}
 
 	void cleanupSpec() {
 		dataProducer?.close()
