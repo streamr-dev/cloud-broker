@@ -17,8 +17,8 @@ jobs:
   - stage: Integration tests
     script:
     - git clone https://github.com/streamr-dev/streamr-docker-dev.git
-    - "$TRAVIS_BUILD_DIR/streamr-docker-dev/streamr-docker-dev/bin.sh start kafka cassandra redis"
-    - sleep 1m
+    - "$TRAVIS_BUILD_DIR/streamr-docker-dev/streamr-docker-dev/bin.sh start 4"
+    - sleep 3m
     - "./gradlew integrationTest --stacktrace --info"
   - stage: Staging
     if: tag IS blank
