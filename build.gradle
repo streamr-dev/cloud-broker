@@ -43,10 +43,6 @@ repositories {
 	maven {
 		url "https://oss.sonatype.org/content/groups/public"
 	}
-	// Ethereum Repository
-	maven {
-		url "https://dl.bintray.com/ethereum/maven/"
-	}
 }
 
 dependencies {
