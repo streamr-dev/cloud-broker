@@ -12,9 +12,16 @@ env:
 jobs:
   include:
   - stage: Unit tests
-    name: Gradle Tests
     script:
     - "./gradlew test --stacktrace --info"
+  - stage: Integration tests
+    script:
+    - sudo /etc/init.d/mysql stop
+    - git clone https://github.com/streamr-dev/streamr-docker-dev.git
+    - sudo ifconfig docker0 10.200.10.1/24
+    - "$TRAVIS_BUILD_DIR/streamr-docker-dev/streamr-docker-dev/bin.sh start 4"
+    - sleep 3m
+    - "./gradlew integrationTest --stacktrace --info"
   - stage: Staging
     if: tag IS blank
     name: Build Broker

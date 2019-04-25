@@ -51,6 +51,9 @@ class LoggedStatsSpec extends Specification {
 
 		loggedStats.onCassandraWriteError()
 
+		loggedStats.setReservedCassandraSemaphores(1)
+		loggedStats.setReservedMessageSemaphores(100)
+
 		when:
 		loggedStats.report()
 		loggedStats.report()
@@ -64,7 +67,9 @@ class LoggedStatsSpec extends Specification {
 				"\tBackpressure 1.018 kB / 4 events\n" +
 				"\tRead throughput 1.527 kB/s or 6 event/s\n" +
 				"\tWrite throughput 0.509 kB/s or 2 event/s\n" +
-				"\tWrite errors 1",
+				"\tWrite errors 1\n" +
+					"\tReserved message semaphores: 100\n" +
+					"\tReserved cassandra semaphores: 1",
 			"No new data."
 		]
 	}

@@ -43,7 +43,7 @@ repositories {
 	maven {
 		url "https://oss.sonatype.org/content/groups/public"
 	}
-	// Ethereum Repository
+	// Needed for ethereumj transitive dependency from com.streamr.client
 	maven {
 		url "https://dl.bintray.com/ethereum/maven/"
 	}
@@ -54,7 +54,7 @@ dependencies {
 	compile group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: '2.7' // SLF4J log messages to Log4j
 	compile group: 'org.apache.kafka', name: 'kafka-clients', version: '0.9.0.1'
 	compile group: 'biz.paluch.redis', name: 'lettuce', version: '4.3.1.Final'
-	compile group: 'com.datastax.cassandra', name: 'cassandra-driver-core', version: '3.5.0'
+	compile group: 'com.datastax.cassandra', name: 'cassandra-driver-core', version: '3.5.0', classifier: 'shaded'
 	testCompile group: 'org.spockframework', name: 'spock-core', version: '1.1-groovy-2.4'
 	integrationTestCompile group: 'org.spockframework', name: 'spock-core', version: '1.1-groovy-2.4'
 	compile 'com.google.code.gson:gson:2.2.4'

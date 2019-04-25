@@ -29,7 +29,7 @@ class RedisReporterSpec extends Specification {
 			"signature"
 	)
 
-	RedisReporter reporter = new RedisReporter(Config.REDIS_HOST, Config.REDIS_PASSWORD)
+	RedisReporter reporter = new RedisReporter(Config.REDIS_HOST, Config.REDIS_PORT, Config.REDIS_PASSWORD)
 	RedisClient client
 
 	void setup() {
@@ -105,6 +105,12 @@ class RedisReporterSpec extends Specification {
 
 			@Override
 			void onCassandraWriteError() {}
+
+			@Override
+			void setReservedMessageSemaphores(int reservedMessageSemaphores) {}
+
+			@Override
+			void setReservedCassandraSemaphores(int reservedCassandraSemaphores) {}
 		})
 
 		when:

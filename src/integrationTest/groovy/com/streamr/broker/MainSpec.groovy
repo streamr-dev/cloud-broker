@@ -26,12 +26,16 @@ class MainSpec extends Specification {
 	)
 
 	@Shared
-	Cluster cassandraCluster = Cluster.builder()
-		.addContactPoint(Config.CASSANDRA_HOST)
-		.build()
+	Cluster cassandraCluster
 
 	@Shared
 	String streamId = "MainSpec" + System.currentTimeMillis()
+
+	void setupSpec() {
+		Cluster.Builder builder = Cluster.builder()
+		Config.getCassandraHosts().each { builder.addContactPoint(it) }
+		cassandraCluster = builder.build()
+	}
 
 	void cleanupSpec() {
 		dataProducer?.close()
@@ -47,31 +51,11 @@ class MainSpec extends Specification {
 
 		Main.main(new String[0])
 
+		// Allow some time for the broker to connect to Kafka
+		Thread.sleep(10 * 1000)
+
 		when: "500 new data points arrive to Kafka"
-		(1..100).each {
-			dataProducer.produceToKafka(new StreamrBinaryMessageV28(
-				streamId,
-				1,
-				System.currentTimeMillis() + (it * 10000),
-				0,
-				StreamrBinaryMessage.CONTENT_TYPE_JSON,
-				('{"I am message number": "'+it+'"}').bytes)
-			)
-		}
-		(101..200).each {
-			dataProducer.produceToKafka(new StreamrBinaryMessageV29(
-				streamId,
-				1,
-				System.currentTimeMillis() + (it * 10000),
-				0,
-				StreamrBinaryMessage.CONTENT_TYPE_JSON,
-				('{"I am message number": "'+it+'"}').bytes,
-				StreamrBinaryMessage.SignatureType.SIGNATURE_TYPE_ETH,
-				"0xF915eD664e43C50eB7b9Ca7CfEB992703eDe55c4",
-				"0xcb1fa20f2f8e75f27d3f171d236c071f0de39e4b497c51b390306fc6e7e112bb415ecea1bd093320dd91fd91113748286711122548c52a15179822a014dc14931b")
-			)
-		}
-		(201..500).each {
+		(1..500).each {
 			dataProducer.produceToKafka(new StreamMessageV30(
 				streamId,
 				1,
@@ -88,13 +72,26 @@ class MainSpec extends Specification {
 			)
 		}
 
+		then: "all data points have been read from Kafka"
+		new PollingConditions(timeout: 30).eventually {
+			assert Main.getStats().getTotalEventsRead() == 500
+		}
+		and: "all data points have been written to Cassandra"
+		new PollingConditions(timeout: 30).eventually {
+			assert Main.getStats().getTotalEventsWritten() == 500
+		}
+		and: "all data points have been written to Redis"
+		new PollingConditions(timeout: 30).eventually {
+			assert Main.getStats().getTotalEventsWrittenRedis() == 500
+		}
+
 		then: "all data points are published into Redis Pub/Sub"
-		new PollingConditions(timeout: 5).eventually {
+		new PollingConditions(timeout: 30).eventually {
 			assert receivedMessages.size() == 500
 		}
 
 		and: "all data points are stored into Cassandra"
-		new PollingConditions(timeout: 10, initialDelay: 1, delay: 0.5).eventually {
+		new PollingConditions(timeout: 30, initialDelay: 1, delay: 0.5).eventually {
 			assert fetchFromCassandra(streamId).size() == 500
 		}
 
