@@ -8,6 +8,10 @@
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/cloud-broker_main.iml" filepath="$PROJECT_DIR$/.idea/modules/cloud-broker_main.iml" group="cloud-broker" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/cloud-broker_performanceTest.iml" filepath="$PROJECT_DIR$/.idea/modules/cloud-broker_performanceTest.iml" group="cloud-broker" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/cloud-broker_test.iml" filepath="$PROJECT_DIR$/.idea/modules/cloud-broker_test.iml" group="cloud-broker" />
+      <module fileurl="file://$PROJECT_DIR$/src/integrationTest/integrationTest.iml" filepath="$PROJECT_DIR$/src/integrationTest/integrationTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/src/main/main.iml" filepath="$PROJECT_DIR$/src/main/main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/src/performanceTest/performanceTest.iml" filepath="$PROJECT_DIR$/src/performanceTest/performanceTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/src/test/test.iml" filepath="$PROJECT_DIR$/src/test/test.iml" />
     </modules>
   </component>
 </project>
