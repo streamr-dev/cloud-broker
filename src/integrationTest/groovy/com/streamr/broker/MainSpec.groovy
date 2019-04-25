@@ -9,7 +9,6 @@ import com.lambdaworks.redis.pubsub.api.sync.RedisPubSubCommands
 import com.streamr.client.protocol.message_layer.StreamMessage
 import com.streamr.client.protocol.message_layer.StreamMessageV30
 import groovy.transform.CompileStatic
-import org.spockframework.runtime.SpockTimeoutError
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.util.concurrent.PollingConditions

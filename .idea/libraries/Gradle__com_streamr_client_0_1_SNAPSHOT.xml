@@ -3,6 +3,7 @@
     <CLASSES>
       <root url="jar://$MAVEN_REPOSITORY$/com/streamr/client/0.1-SNAPSHOT/client-0.1-20190222.110625-5.jar!/" />
       <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.streamr/client/0.1-SNAPSHOT/82e93d144ec758c33e52fd6f69364204ebd91a6e/client-0.1-SNAPSHOT.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/com/streamr/client/0.1-SNAPSHOT/client-0.1-20190424.192708-7.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />
