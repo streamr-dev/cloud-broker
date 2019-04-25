@@ -55,30 +55,7 @@ class MainSpec extends Specification {
 		Thread.sleep(10 * 1000)
 
 		when: "500 new data points arrive to Kafka"
-		(1..100).each {
-			dataProducer.produceToKafka(new StreamrBinaryMessageV28(
-				streamId,
-				1,
-				System.currentTimeMillis() + (it * 10000),
-				0,
-				StreamrBinaryMessage.CONTENT_TYPE_JSON,
-				('{"I am message number": "'+it+'"}').bytes)
-			)
-		}
-		(101..200).each {
-			dataProducer.produceToKafka(new StreamrBinaryMessageV29(
-				streamId,
-				1,
-				System.currentTimeMillis() + (it * 10000),
-				0,
-				StreamrBinaryMessage.CONTENT_TYPE_JSON,
-				('{"I am message number": "'+it+'"}').bytes,
-				StreamrBinaryMessage.SignatureType.SIGNATURE_TYPE_ETH,
-				"0xF915eD664e43C50eB7b9Ca7CfEB992703eDe55c4",
-				"0xcb1fa20f2f8e75f27d3f171d236c071f0de39e4b497c51b390306fc6e7e112bb415ecea1bd093320dd91fd91113748286711122548c52a15179822a014dc14931b")
-			)
-		}
-		(201..500).each {
+		(1..500).each {
 			dataProducer.produceToKafka(new StreamMessageV30(
 				streamId,
 				1,

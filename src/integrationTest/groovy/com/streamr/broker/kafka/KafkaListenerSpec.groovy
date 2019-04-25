@@ -47,26 +47,7 @@ class KafkaListenerSpec extends Specification {
 
 		and:
 		KafkaDataProducer producer = new KafkaDataProducer(Config.KAFKA_HOST, Config.KAFKA_TOPIC)
-		producer.produceToKafka(new StreamrBinaryMessageV28(
-				"streamId",
-				0,
-				System.currentTimeMillis(),
-				0,
-				StreamrBinaryMessage.CONTENT_TYPE_JSON,
-				messageToBytes(["message no.": "1", testId: testId])
-		))
-		producer.produceToKafka(new StreamrBinaryMessageV29(
-				"streamId",
-				0,
-				System.currentTimeMillis(),
-				0,
-				StreamrBinaryMessage.CONTENT_TYPE_JSON,
-				messageToBytes(["message no.": "2", testId: testId]),
-				StreamrBinaryMessage.SignatureType.SIGNATURE_TYPE_NONE,
-				"",
-				""
-		))
-		(3..5).each {
+		(1..5).each {
 			def msg = new StreamMessageV30(
 				"streamId",
 				0,
