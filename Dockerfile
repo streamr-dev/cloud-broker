@@ -25,7 +25,9 @@ ENV KAFKA_GROUP data-dev
 ENV KAFKA_TOPIC data-dev
 ENV REDIS_HOST redis
 ENV REDIS_PASSWORD ""
-ENV CASSANDRA_HOST cassandra
+ENV CASSANDRA_HOSTS cassandra
+ENV CASSANDRA_USERNAME ""
+ENV CASSANDRA_PASSWORD ""
 ENV CASSANDRA_KEYSPACE streamr_dev
 
 # Run broker when container launches
@@ -35,6 +37,8 @@ CMD java \
     -Dkafka.topic=${KAFKA_TOPIC} \
     -Dredis.host=${REDIS_HOST} \
     -Dredis.password=${REDIS_PASSWORD} \
-    -Dcassandra.host=${CASSANDRA_HOST} \
+    -Dcassandra.hosts=${CASSANDRA_HOSTS} \
     -Dcassandra.keyspace=${CASSANDRA_KEYSPACE} \
+    -Dcassandra.username=${CASSANDRA_USERNAME} \
+    -Dcassandra.password=${CASSANDRA_PASSWORD} \
     -jar /cloud-broker.jar
