@@ -48,7 +48,7 @@ public class KafkaListener implements Runnable {
 		properties.setProperty("bootstrap.servers", zookeeperHost);
 		properties.setProperty("group.id", groupId);
 		properties.setProperty("session.timeout.ms", "15000");
-		properties.setProperty("auto.offset.reset", "latest");
+		properties.setProperty("auto.offset.reset", "earliest");
 		properties.setProperty("key.deserializer", StringDeserializer.class.getName());
 		properties.setProperty("value.deserializer", ByteArrayDeserializer.class.getName());
 		return properties;
