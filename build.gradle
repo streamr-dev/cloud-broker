@@ -40,6 +40,9 @@ sourceSets {
 repositories {
 	mavenCentral()
 	mavenLocal()
+	maven {
+		url "https://oss.sonatype.org/content/groups/public"
+	}
 	// Needed for ethereumj transitive dependency from com.streamr.client
 	maven {
 		url "https://dl.bintray.com/ethereum/maven/"
@@ -55,7 +58,7 @@ dependencies {
 	testCompile group: 'org.spockframework', name: 'spock-core', version: '1.1-groovy-2.4'
 	integrationTestCompile group: 'org.spockframework', name: 'spock-core', version: '1.1-groovy-2.4'
 	compile 'com.google.code.gson:gson:2.2.4'
-	compile group: 'com.streamr', name: 'client', version: '1.0.0'
+	compile group: 'com.streamr', name: 'client', version: '1.1.0-SNAPSHOT'
 }
 
 jar {
