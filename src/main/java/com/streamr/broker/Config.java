@@ -13,8 +13,13 @@ public class Config {
 	public static final String CASSANDRA_PASSWORD = System.getProperty("cassandra.password", "");
 	public static final int QUEUE_SIZE = Integer.parseInt(System.getProperty("queuesize", "200"));
 	public static final int STATS_INTERVAL_IN_SECS = Integer.parseInt(System.getProperty("statsinterval", "30"));
+	public static final String NODES = System.getProperty("nodes", "");
 
 	public static String[] getCassandraHosts() {
 		return CASSANDRA_HOSTS.split(",");
+	}
+
+	public static String[] getNodes() {
+		return NODES.split(",");
 	}
 }
