@@ -16,8 +16,6 @@ public class Main {
 		brokerProcess.setUpProducer((queueProducer ->
 			new KafkaListener(Config.KAFKA_HOST, Config.KAFKA_GROUP, Config.KAFKA_TOPIC, queueProducer)));
 		brokerProcess.setUpConsumer(
-			new RedisReporter(Config.REDIS_HOST, Config.REDIS_PORT, Config.REDIS_PASSWORD),
-			new CassandraBatchReporter(Config.getCassandraHosts(), Config.CASSANDRA_KEYSPACE, Config.CASSANDRA_USERNAME, Config.CASSANDRA_PASSWORD),
 			new TestNetReporter(Config.getNodes())
 		);
 		brokerProcess.startAll();
