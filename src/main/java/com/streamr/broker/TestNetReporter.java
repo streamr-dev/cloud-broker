@@ -6,11 +6,11 @@ import com.streamr.client.protocol.message_layer.StreamMessage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.drafts.Draft_6455;
 import org.java_websocket.exceptions.WebsocketNotConnectedException;
 import org.java_websocket.handshake.ServerHandshake;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.channels.NotYetConnectedException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -74,39 +74,41 @@ public class TestNetReporter implements Reporter {
     }
 
     private WebSocketClient getWebSocketClient(String address) {
+        WebSocketClient ws = new WebSocketClient(new URI(address), new Draft_6455(), null, 30 * 1000) {
+            @Override
+            public void onOpen(ServerHandshake handshakedata) {
+                log.info("Connection established");
+            }
+
+            @Override
+            public void onMessage(String message) {
+
+            }
+
+            @Override
+            public void onClose(int code, String reason, boolean remote) {
+                log.info("Connection closed! Code: " + code + ", Reason: " + reason);
+            }
+
+            @Override
+            public void onError(Exception ex) {
+                log.error(ex);
+            }
+
+            @Override
+            public void send(String text) throws NotYetConnectedException {
+                super.send(text);
+            }
+        };
+        
+        log.info("Connecting to: " + address);
         try {
-            WebSocketClient ws = new WebSocketClient(new URI(address)) {
-                @Override
-                public void onOpen(ServerHandshake handshakedata) {
-                    log.info("Connection established");
-                }
-
-                @Override
-                public void onMessage(String message) {
-
-                }
-
-                @Override
-                public void onClose(int code, String reason, boolean remote) {
-                    log.info("Connection closed! Code: " + code + ", Reason: " + reason);
-                }
-
-                @Override
-                public void onError(Exception ex) {
-                    log.error(ex);
-                }
-
-                @Override
-                public void send(String text) throws NotYetConnectedException {
-                    super.send(text);
-                }
-            };
-            log.info("Connecting to: " + address);
             ws.connectBlocking();
             log.info("Connected to: " + address);
-            return ws;
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            log.error("Failed to connect to " + address);
         }
+
+        return ws;
     }
 }
