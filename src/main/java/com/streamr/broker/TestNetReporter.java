@@ -74,7 +74,7 @@ public class TestNetReporter implements Reporter {
     }
 
     private WebSocketClient getWebSocketClient(String address) {
-        WebSocketClient ws = new WebSocketClient(new URI(address), new Draft_6455(), null, 30 * 1000) {
+        WebSocketClient ws = new WebSocketClient(new URI(address), new Draft_6455(), null, 15 * 1000) {
             @Override
             public void onOpen(ServerHandshake handshakedata) {
                 log.info("Connection established");
@@ -100,7 +100,7 @@ public class TestNetReporter implements Reporter {
                 super.send(text);
             }
         };
-        
+
         log.info("Connecting to: " + address);
         try {
             ws.connectBlocking();
