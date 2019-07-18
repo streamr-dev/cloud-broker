@@ -1,5 +1,8 @@
 package com.streamr.broker;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class Config {
 	public static final String KAFKA_HOST = System.getProperty("kafka.server", "127.0.0.1:9092");
 	public static final String KAFKA_GROUP = System.getProperty("kafka.group", "data-dev");
@@ -13,7 +16,9 @@ public class Config {
 	public static final String CASSANDRA_PASSWORD = System.getProperty("cassandra.password", "");
 	public static final int QUEUE_SIZE = Integer.parseInt(System.getProperty("queuesize", "200"));
 	public static final int STATS_INTERVAL_IN_SECS = Integer.parseInt(System.getProperty("statsinterval", "30"));
+
 	public static final String NODES = System.getProperty("nodes", "");
+	public static final String STREAM_FILTER = System.getProperty("stream.filter", "");
 
 	public static String[] getCassandraHosts() {
 		return CASSANDRA_HOSTS.split(",");
@@ -25,5 +30,15 @@ public class Config {
 			throw new IllegalArgumentException("No nodes given! Use -Dnodes=ws://ip:port/path,ws://ip2:port/path");
 		}
 		return nodes;
+	}
+
+	public static Set<String> getStreamFilter() {
+		Set<String> result = new HashSet<>();
+		for (String streamId : STREAM_FILTER.split(",")) {
+			if (!streamId.isEmpty()) {
+				result.add(streamId);
+			}
+		}
+		return result;
 	}
 }

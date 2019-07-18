@@ -1,5 +1,6 @@
 package com.streamr.broker.kafka;
 
+import com.streamr.broker.Config;
 import com.streamr.client.protocol.message_layer.StreamMessage;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -12,6 +13,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.Collections;
 import java.util.Properties;
+import java.util.Set;
 
 public class KafkaListener implements Runnable {
 	private static final Logger log = LogManager.getLogger();
@@ -19,6 +21,7 @@ public class KafkaListener implements Runnable {
 	private final KafkaRecordTransformer kafkaRecordTransformer = new KafkaRecordTransformer();
 	private final java.util.function.Consumer<StreamMessage> callback;
 	private final Consumer<String, byte[]> consumer;
+	private final Set<String> streamFilter;
 
 	public KafkaListener(String zookeeperHost, String groupId, String dataTopic,
 						 java.util.function.Consumer<StreamMessage> callback) {
@@ -27,6 +30,7 @@ public class KafkaListener implements Runnable {
 		consumer.subscribe(Collections.singletonList(dataTopic));
 		log.info("Subscribed to data topic '{}'", dataTopic);
 		this.callback = callback;
+		this.streamFilter = Config.getStreamFilter();
 	}
 
 	@Override
@@ -36,7 +40,10 @@ public class KafkaListener implements Runnable {
 			for (ConsumerRecord<String, byte[]> record : records) {
 				try {
 					StreamMessage message = kafkaRecordTransformer.transform(record);
-					callback.accept(message);
+
+					if (streamFilter.isEmpty() || streamFilter.contains(message.getStreamId())) {
+						callback.accept(message);
+					}
 				} catch (Throwable e) {
 					log.throwing(e);
 				}
