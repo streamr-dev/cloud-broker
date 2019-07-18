@@ -35,7 +35,8 @@ public class KafkaListener implements Runnable {
 			ConsumerRecords<String, byte[]> records = consumer.poll(Long.MAX_VALUE); // wait indefinitely
 			for (ConsumerRecord<String, byte[]> record : records) {
 				try {
-					callback.accept(kafkaRecordTransformer.transform(record));
+					StreamMessage message = kafkaRecordTransformer.transform(record);
+					callback.accept(message);
 				} catch (Throwable e) {
 					log.throwing(e);
 				}
