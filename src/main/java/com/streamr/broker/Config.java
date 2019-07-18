@@ -20,6 +20,10 @@ public class Config {
 	}
 
 	public static String[] getNodes() {
-		return NODES.split(",");
+		String[] nodes = NODES.split(",");
+		if (nodes.length == 0) {
+			throw new IllegalArgumentException("No nodes given! Use -Dnodes=ws://ip:port/path,ws://ip2:port/path");
+		}
+		return nodes;
 	}
 }
