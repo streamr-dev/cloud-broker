@@ -74,7 +74,14 @@ public class TestNetReporter implements Reporter {
     }
 
     private WebSocketClient getWebSocketClient(String address) {
-        WebSocketClient ws = new WebSocketClient(new URI(address), new Draft_6455(), null, 15 * 1000) {
+        URI uri;
+        try {
+            uri = new URI(address);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        WebSocketClient ws = new WebSocketClient(uri, new Draft_6455(), null, 15 * 1000) {
             @Override
             public void onOpen(ServerHandshake handshakedata) {
                 log.info("Connection established");
