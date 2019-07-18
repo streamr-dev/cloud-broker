@@ -36,7 +36,7 @@ public class TestNetReporter implements Reporter {
     @Override
     public void report(StreamMessage msg) {
         String key = msg.getStreamId() + msg.getStreamPartition();
-        WebSocketClient client = clients.get(key.hashCode() % clients.size());
+        WebSocketClient client = clients.get(Math.abs(key.hashCode()) % clients.size());
         PublishRequest request = new PublishRequest(msg, null);
 
         // Try with the client computed by the hash
