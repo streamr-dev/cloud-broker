@@ -63,15 +63,7 @@ public class TestNetReporter implements Reporter {
             client.send(request.toJson());
         } catch (WebsocketNotConnectedException e) {
             log.error("Client is not connected! Trying to reconnect: " + client.getURI());
-            // Try to reconnect the websocket
-            try {
-                client.reconnectBlocking();
-                log.info("Reconnected to " + client.getURI() + ". Trying again to send the message.");
-                client.send(request.toJson());
-            } catch (Exception ee) {
-                log.info("Unable to reconnect or resend message to " + client.getURI() + ". Trying another node.");
-                return false;
-            }
+            client.reconnect();
         }
         return true;
     }
