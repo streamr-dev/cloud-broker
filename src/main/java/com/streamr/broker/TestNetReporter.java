@@ -52,6 +52,7 @@ public class TestNetReporter implements Reporter {
             }
             if (i == clients.size()) {
                 log.error("Failed to send message to any node!");
+                stats.onCassandraWriteError();
             }
         }
         stats.onWrittenToCassandra(msg);
