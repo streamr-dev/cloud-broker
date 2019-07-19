@@ -12,13 +12,15 @@ import org.java_websocket.handshake.ServerHandshake;
 
 import java.net.URI;
 import java.nio.channels.NotYetConnectedException;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 
 public class TestNetReporter implements Reporter {
     private static final Logger log = LogManager.getLogger();
     private Stats stats;
     private ArrayList<WebSocketClient> clients = new ArrayList<>();
+    private Map<WebSocketClient, Date> previousReconnectAttemptByClient = new HashMap<>();
+
+    private static final int CONNECT_TIMEOUT = 15 * 1000;
 
     public TestNetReporter(String[] nodeAddresses) {
         log.info("Connecting to nodes: " + Arrays.toString(nodeAddresses));
@@ -42,8 +44,9 @@ public class TestNetReporter implements Reporter {
         // Try with the client computed by the hash
         if (!trySend(request, client)) {
             // If unsuccessful, try the other clients in order
-            int i = 0;
-            for (; i<clients.size(); i++) {
+            log.warn("Unable to send the message to " + client.getURI() + ". Trying other nodes");
+            int i;
+            for (i=0; i<clients.size(); i++) {
                 if (clients.get(i) != client) {
                     log.info("Trying another node: " + clients.get(i).getURI());
                     if (trySend(request, clients.get(i))) {
@@ -51,7 +54,7 @@ public class TestNetReporter implements Reporter {
                     }
                 }
             }
-            if (i == clients.size()) {
+            if (i >= clients.size()) {
                 log.error("Failed to send message to any node!");
                 stats.onCassandraWriteError();
             }
@@ -61,10 +64,22 @@ public class TestNetReporter implements Reporter {
 
     private boolean trySend(PublishRequest request, WebSocketClient client) {
         try {
-            client.send(request.toJson());
+            // Pre-check to avoid excess logging from WebSocketClient#onClose()
+            if (client.isOpen()) {
+                client.send(request.toJson());
+            } else {
+                throw new WebsocketNotConnectedException();
+            }
         } catch (WebsocketNotConnectedException e) {
-            log.error("Client is not connected! Trying to reconnect: " + client.getURI());
-            client.reconnect();
+            log.error("Client is not connected: " + client.getURI());
+            if (!previousReconnectAttemptByClient.containsKey(client)
+                    || previousReconnectAttemptByClient.get(client).before(new Date(System.currentTimeMillis() - 10 * CONNECT_TIMEOUT))) {
+                log.error("Client is not connected! Trying to reconnect: " + client.getURI());
+                client.reconnect();
+                previousReconnectAttemptByClient.put(client, new Date());
+            } else {
+                log.info("Due to throttling, skipping reconnect attempt to " + client.getURI());
+            }
             return false;
         }
         return true;
@@ -83,7 +98,7 @@ public class TestNetReporter implements Reporter {
             throw new RuntimeException(e);
         }
 
-        WebSocketClient ws = new WebSocketClient(uri, new Draft_6455(), null, 15 * 1000) {
+        WebSocketClient ws = new WebSocketClient(uri, new Draft_6455(), null, CONNECT_TIMEOUT) {
             @Override
             public void onOpen(ServerHandshake handshakedata) {
                 log.info("Connection established to " + uri);
