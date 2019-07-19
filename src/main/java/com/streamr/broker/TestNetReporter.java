@@ -85,7 +85,7 @@ public class TestNetReporter implements Reporter {
         WebSocketClient ws = new WebSocketClient(uri, new Draft_6455(), null, 15 * 1000) {
             @Override
             public void onOpen(ServerHandshake handshakedata) {
-                log.info("Connection established");
+                log.info("Connection established to " + uri);
             }
 
             @Override
@@ -95,12 +95,12 @@ public class TestNetReporter implements Reporter {
 
             @Override
             public void onClose(int code, String reason, boolean remote) {
-                log.info("Connection closed! Code: " + code + ", Reason: " + reason);
+                log.info("Connection closed to " + uri + ". Code: " + code + ", Reason: " + reason);
             }
 
             @Override
             public void onError(Exception ex) {
-                log.error(ex);
+                log.error("Error on " + uri, ex);
             }
 
             @Override
@@ -112,7 +112,6 @@ public class TestNetReporter implements Reporter {
         log.info("Connecting to: " + address);
         try {
             ws.connectBlocking();
-            log.info("Connected to: " + address);
         } catch (Exception e) {
             log.error("Failed to connect to " + address);
         }
