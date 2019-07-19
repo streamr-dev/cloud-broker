@@ -45,6 +45,7 @@ public class TestNetReporter implements Reporter {
             int i = 0;
             for (; i<clients.size(); i++) {
                 if (clients.get(i) != client) {
+                    log.info("Trying another node: " + clients.get(i).getURI());
                     if (trySend(request, clients.get(i))) {
                         break;
                     }
