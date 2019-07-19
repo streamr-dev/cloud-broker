@@ -44,11 +44,9 @@ public class TestNetReporter implements Reporter {
         // Try with the client computed by the hash
         if (!trySend(request, client)) {
             // If unsuccessful, try the other clients in order
-            log.warn("Unable to send the message to " + client.getURI() + ". Trying other nodes");
             int i;
             for (i=0; i<clients.size(); i++) {
                 if (clients.get(i) != client) {
-                    log.info("Trying another node: " + clients.get(i).getURI());
                     if (trySend(request, clients.get(i))) {
                         break;
                     }
@@ -71,14 +69,11 @@ public class TestNetReporter implements Reporter {
                 throw new WebsocketNotConnectedException();
             }
         } catch (WebsocketNotConnectedException e) {
-            log.error("Client is not connected: " + client.getURI());
             if (!previousReconnectAttemptByClient.containsKey(client)
                     || previousReconnectAttemptByClient.get(client).before(new Date(System.currentTimeMillis() - 10 * CONNECT_TIMEOUT))) {
                 log.error("Client is not connected! Trying to reconnect: " + client.getURI());
                 client.reconnect();
                 previousReconnectAttemptByClient.put(client, new Date());
-            } else {
-                log.info("Due to throttling, skipping reconnect attempt to " + client.getURI());
             }
             return false;
         }
