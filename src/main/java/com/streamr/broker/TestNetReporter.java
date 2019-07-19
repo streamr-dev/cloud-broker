@@ -64,6 +64,7 @@ public class TestNetReporter implements Reporter {
         } catch (WebsocketNotConnectedException e) {
             log.error("Client is not connected! Trying to reconnect: " + client.getURI());
             client.reconnect();
+            return false;
         }
         return true;
     }
