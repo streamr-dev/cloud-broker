@@ -15,6 +15,7 @@ public class BrokerProcess {
 	private final BlockingQueue<StreamMessage> queue;
 	private Stats stats;
 	private int intervalInSec;
+	private int metricsIntervalInSec;
 	private Runnable consumer;
 	private Runnable producer;
 
@@ -22,9 +23,10 @@ public class BrokerProcess {
 		this.queue = new ArrayBlockingQueue<>(queueSize);
 	}
 
-	public void setStats(Stats stats, int intervalInSec) {
+	public void setStats(Stats stats, int intervalInSec, int metricsIntervalInSec) {
 		this.stats = stats;
 		this.intervalInSec = intervalInSec;
+		this.metricsIntervalInSec = metricsIntervalInSec;
 	}
 
 	public void setUpProducer(Function<QueueProducer, Runnable> cb) {
@@ -55,6 +57,9 @@ public class BrokerProcess {
 	public void startStatsLogging() {
 		stats.start(intervalInSec);
 		statsExecutor.scheduleAtFixedRate(stats::report, intervalInSec, intervalInSec, TimeUnit.SECONDS);
+		if (metricsIntervalInSec != -1) {
+			statsExecutor.scheduleAtFixedRate(stats::reportToStream, metricsIntervalInSec, metricsIntervalInSec, TimeUnit.SECONDS);
+		}
 	}
 
 	public void shutdown() {

@@ -13,6 +13,11 @@ public class Config {
 	public static final String CASSANDRA_PASSWORD = System.getProperty("cassandra.password", "");
 	public static final int QUEUE_SIZE = Integer.parseInt(System.getProperty("queuesize", "200"));
 	public static final int STATS_INTERVAL_IN_SECS = Integer.parseInt(System.getProperty("statsinterval", "30"));
+	public static final int METRICS_INTERVAL_IN_SECS = Integer.parseInt(System.getProperty("metrics.interval", "3"));
+	public static final String METRICS_STREAM_ID = System.getProperty("metrics.stream", "");
+	public static final String METRICS_API_KEY = System.getProperty("metrics.apikey", "");
+	public static final String METRICS_WS_URL = System.getProperty("metrics.wsurl", "ws://localhost:8890/api/v1/ws");
+	public static final String METRICS_REST_URL = System.getProperty("metrics.resturl", "http://localhost:8081/streamr-core/api/v1");
 
 	public static String[] getCassandraHosts() {
 		return CASSANDRA_HOSTS.split(",");

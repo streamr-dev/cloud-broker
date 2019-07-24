@@ -1,11 +1,19 @@
 package com.streamr.broker.stats;
 
+import com.streamr.client.authentication.ApiKeyAuthenticationMethod;
+import com.streamr.client.options.EncryptionOptions;
+import com.streamr.client.options.SigningOptions;
+import com.streamr.client.options.StreamrClientOptions;
 import com.streamr.client.protocol.message_layer.StreamMessage;
+import com.streamr.client.StreamrClient;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class LoggedStats implements Stats {
@@ -13,6 +21,7 @@ public class LoggedStats implements Stats {
 	private static final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
 	private int intervalInSec = -1;
+	private int metricsIntervalInSec = -1;
 
 	private long lastTimestamp = 0;
 	private AtomicLong totalBytesRead = new AtomicLong(0);
@@ -39,6 +48,24 @@ public class LoggedStats implements Stats {
 			"\tWrite errors {}\n" +
 			"\tReserved message semaphores: {}\n" +
 			"\tReserved cassandra semaphores: {}";
+
+	private StreamrClient client = null;
+	private String metricsStreamId;
+
+	public LoggedStats() {
+
+	}
+
+	public LoggedStats(int metricsIntervalInSec,
+					   String metricsStreamId, String metricsApiKey,
+					   String wsUrl, String restUrl) {
+		this.metricsStreamId = metricsStreamId;
+		StreamrClientOptions options = new StreamrClientOptions(new ApiKeyAuthenticationMethod(metricsApiKey),
+				SigningOptions.getDefault(), EncryptionOptions.getDefault(), wsUrl, restUrl);
+		client = new StreamrClient(options);
+		this.metricsIntervalInSec = metricsIntervalInSec;
+		log.info("Metrics reporting interval to stream {} is {} sec(s).", metricsStreamId, metricsIntervalInSec);
+	}
 
 	@Override
 	public void start(int intervalInSec) {
@@ -98,6 +125,22 @@ public class LoggedStats implements Stats {
 
 			log.info(TEMPLATE, lastDate, kbBackPressure, eventBackPressure, kbReadPerSec, eventReadPerSec,
 					kbWritePerSec, eventWritePerSec, writeErrors, reservedMessageSemaphores, reservedCassandraSemaphores);
+		}
+	}
+
+	@Override
+	public void reportToStream() {
+		double kbReadSinceLastReport = (totalBytesRead.get() - lastBytesRead) / 1000.0;
+		long eventsReadSinceLastReport = totalEventsRead.get() - lastEventsRead;
+		double kbReadPerSec = kbReadSinceLastReport / metricsIntervalInSec;
+		long eventReadPerSec = eventsReadSinceLastReport / intervalInSec;
+		Map<String, Object> payload = new HashMap<>();
+		payload.put("kbReadPerSec", kbReadPerSec);
+		payload.put("eventReadPerSec", eventReadPerSec);
+		try {
+			client.publish(client.getStream(this.metricsStreamId), payload);
+		} catch (IOException e) {
+			log.error(e);
 		}
 	}
 
