@@ -104,6 +104,9 @@ class RedisReporterSpec extends Specification {
 			void report() {}
 
 			@Override
+			void reportToStream() {}
+
+			@Override
 			void onCassandraWriteError() {}
 
 			@Override
