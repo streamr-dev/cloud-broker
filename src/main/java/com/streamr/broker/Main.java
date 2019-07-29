@@ -11,8 +11,13 @@ public class Main {
 
 	public static void main(String[] args) {
 		BrokerProcess brokerProcess = new BrokerProcess(Config.QUEUE_SIZE);
-		stats = new LoggedStats();
-		brokerProcess.setStats(stats, Config.STATS_INTERVAL_IN_SECS);
+		if (Config.METRICS_STREAM_ID.equals("")) {
+			stats = new LoggedStats();
+		} else {
+			stats = new LoggedStats(Config.METRICS_INTERVAL_IN_SECS, Config.METRICS_STREAM_ID,
+					Config.METRICS_API_KEY, Config.METRICS_WS_URL,Config.METRICS_REST_URL);
+		}
+		brokerProcess.setStats(stats, Config.STATS_INTERVAL_IN_SECS, Config.METRICS_INTERVAL_IN_SECS);
 		brokerProcess.setUpProducer((queueProducer ->
 			new KafkaListener(Config.KAFKA_HOST, Config.KAFKA_GROUP, Config.KAFKA_TOPIC, queueProducer)));
 		brokerProcess.setUpConsumer(
