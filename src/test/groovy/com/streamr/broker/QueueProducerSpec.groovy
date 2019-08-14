@@ -8,7 +8,7 @@ import java.util.concurrent.ArrayBlockingQueue
 class QueueProducerSpec extends Specification {
 	void "accept(message) puts message to queue"() {
 		def queue = new ArrayBlockingQueue(4)
-		QueueProducer queueProducer = new QueueProducer(queue, new ArrayList<Stats>())
+		QueueProducer queueProducer = new QueueProducer(queue, new Stats[0])
 
 		when:
 		queueProducer.accept(ExampleData.MESSAGE_2)
@@ -23,7 +23,7 @@ class QueueProducerSpec extends Specification {
 	void "accept(message) invokes Stasts#onReadFromKafka"() {
 		def queue = new ArrayBlockingQueue(4)
 		def stats = Mock(Stats)
-		ArrayList<Stats> statsArray = [stats]
+		Stats[] statsArray = [stats]
 		QueueProducer queueProducer = new QueueProducer(queue, statsArray)
 
 		when:

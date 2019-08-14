@@ -117,7 +117,7 @@ class RedisReporterSpec extends Specification {
 			@Override
 			void setReservedCassandraSemaphores(int reservedCassandraSemaphores) {}
 		}
-		reporter.setStats((ArrayList<Stats>)[stats])
+		reporter.setStats((Stats[])[stats])
 
 		when:
 		reporter.report(testMessage)
