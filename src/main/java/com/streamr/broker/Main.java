@@ -22,7 +22,11 @@ public class Main {
 		}
 		loggedStats = new LoggedStats(Config.STATS_INTERVAL_IN_SECS);
 		stats.add(loggedStats);
-		brokerProcess.setStats((Stats[])stats.toArray());
+		Stats[] statsArray = new Stats[stats.size()];
+		for (int i = 0; i < stats.size(); i++) {
+			statsArray[i] = stats.get(i);
+		}
+		brokerProcess.setStats(statsArray);
 		brokerProcess.setUpProducer((queueProducer ->
 			new KafkaListener(Config.KAFKA_HOST, Config.KAFKA_GROUP, Config.KAFKA_TOPIC, queueProducer)));
 		brokerProcess.setUpConsumer(

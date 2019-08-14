@@ -53,6 +53,7 @@ public class BrokerProcess {
 
 	public void startStatsLogging() {
 		for(Stats s: stats) {
+			s.start();
 			statsExecutor.scheduleAtFixedRate(s::report, s.getIntervalInSec(), s.getIntervalInSec(), TimeUnit.SECONDS);
 		}
 	}

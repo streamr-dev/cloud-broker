@@ -13,10 +13,13 @@ import java.util.Map;
 public class MetricsStats extends EventsStats {
     private StreamrClient client = null;
     private String metricsStreamId;
+    private Map<String, Object> lastPayload = new HashMap<>();
 
     public MetricsStats(int intervalInSec, String metricsStreamId, String metricsApiKey,
                         String wsUrl, String restUrl) {
         super("Metrics statistics", intervalInSec);
+        lastPayload.put("kbReadPerSec", 0.0);
+        lastPayload.put("eventReadPerSec", 0L);
         this.metricsStreamId = metricsStreamId;
         StreamrClientOptions options = new StreamrClientOptions(new ApiKeyAuthenticationMethod(metricsApiKey),
                 SigningOptions.getDefault(), EncryptionOptions.getDefault(), wsUrl, restUrl);
@@ -25,9 +28,15 @@ public class MetricsStats extends EventsStats {
 
     @Override
     public void logReport(ReportResult reportResult) {
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("kbReadPerSec", reportResult.getKbReadPerSec());
-        payload.put("eventReadPerSec", reportResult.getEventReadPerSec());
+        Map<String, Object> payload;
+        if (reportResult == null) {
+            payload = lastPayload;
+        } else {
+            payload = new HashMap<>();
+            payload.put("kbReadPerSec", reportResult.getKbReadPerSec());
+            payload.put("eventReadPerSec", reportResult.getEventReadPerSec());
+            lastPayload = payload;
+        }
         try {
             client.publish(client.getStream(this.metricsStreamId), payload);
         } catch (IOException e) {
