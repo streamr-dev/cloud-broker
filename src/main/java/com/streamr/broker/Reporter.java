@@ -9,7 +9,7 @@ import java.util.ArrayList;
 public interface Reporter extends Closeable {
 	void setStats(Stats stats);
 
-	default void setStats(ArrayList<Stats> stats) {
+	default void setStats(Stats[] stats) {
 		for (Stats s: stats) {
 			setStats(s);
 		}

@@ -14,7 +14,7 @@ public class BrokerProcess {
 		r -> new Thread(r, "statsLogger"));
 
 	private final BlockingQueue<StreamMessage> queue;
-	private ArrayList<Stats> stats;
+	private Stats[] stats;
 	private Runnable consumer;
 	private Runnable producer;
 
@@ -22,7 +22,7 @@ public class BrokerProcess {
 		this.queue = new ArrayBlockingQueue<>(queueSize);
 	}
 
-	public void setStats(ArrayList<Stats> stats) {
+	public void setStats(Stats[] stats) {
 		this.stats = stats;
 	}
 
@@ -52,15 +52,17 @@ public class BrokerProcess {
 	}
 
 	public void startStatsLogging() {
-		stats.forEach(s -> {
+		for(Stats s: stats) {
 			statsExecutor.scheduleAtFixedRate(s::report, s.getIntervalInSec(), s.getIntervalInSec(), TimeUnit.SECONDS);
-		});
+		}
 	}
 
 	public void shutdown() {
 		producerExecutor.shutdownNow(); // todo: wait for empty
 		consumerExecutor.shutdownNow();
 		statsExecutor.shutdownNow();
-		stats.forEach(s -> s.stop());
+		for(Stats s: stats) {
+			s.stop();
+		}
 	}
 }

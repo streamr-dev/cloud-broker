@@ -9,9 +9,9 @@ import java.util.function.Consumer;
 
 public class QueueProducer implements Consumer<StreamMessage> {
 	private final BlockingQueue<StreamMessage> queue;
-	private final ArrayList<Stats> stats;
+	private final Stats[] stats;
 
-	public QueueProducer(BlockingQueue<StreamMessage> queue, ArrayList<Stats> stats) {
+	public QueueProducer(BlockingQueue<StreamMessage> queue, Stats[] stats) {
 		this.queue = queue;
 		this.stats = stats;
 	}
@@ -20,7 +20,9 @@ public class QueueProducer implements Consumer<StreamMessage> {
 	public void accept(StreamMessage msg) {
 		try {
 			queue.put(msg);
-			stats.forEach(s -> s.onReadFromKafka(msg));
+			for (Stats s: stats) {
+				s.onReadFromKafka(msg);
+			}
 		} catch (InterruptedException e) {
 			throw new RuntimeException(e);
 		}

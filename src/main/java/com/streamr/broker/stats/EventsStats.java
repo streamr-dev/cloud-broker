@@ -10,7 +10,6 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public abstract class EventsStats implements Stats {
     protected static final Logger log = LogManager.getLogger();
-    private static final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     private String name;
     private int intervalInSec = -1;
@@ -73,6 +72,7 @@ public abstract class EventsStats implements Stats {
         if (lastBytesRead == totalBytesRead.get()) {
             logReport(null);
         } else {
+            DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             String lastDate = dateFormat.format(lastTimestamp);
             double kbBackPressure = (totalBytesRead.get() - totalBytesWritten.get()) / 1000.0;
             double kbReadSinceLastReport = (totalBytesRead.get() - lastBytesRead) / 1000.0;
