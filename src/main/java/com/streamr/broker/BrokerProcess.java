@@ -3,6 +3,7 @@ package com.streamr.broker;
 import com.streamr.broker.stats.Stats;
 import com.streamr.client.protocol.message_layer.StreamMessage;
 
+import java.util.ArrayList;
 import java.util.concurrent.*;
 import java.util.function.Function;
 
@@ -13,9 +14,7 @@ public class BrokerProcess {
 		r -> new Thread(r, "statsLogger"));
 
 	private final BlockingQueue<StreamMessage> queue;
-	private Stats stats;
-	private int intervalInSec;
-	private int metricsIntervalInSec;
+	private ArrayList<Stats> stats;
 	private Runnable consumer;
 	private Runnable producer;
 
@@ -23,10 +22,8 @@ public class BrokerProcess {
 		this.queue = new ArrayBlockingQueue<>(queueSize);
 	}
 
-	public void setStats(Stats stats, int intervalInSec, int metricsIntervalInSec) {
+	public void setStats(ArrayList<Stats> stats) {
 		this.stats = stats;
-		this.intervalInSec = intervalInSec;
-		this.metricsIntervalInSec = metricsIntervalInSec;
 	}
 
 	public void setUpProducer(Function<QueueProducer, Runnable> cb) {
@@ -55,17 +52,15 @@ public class BrokerProcess {
 	}
 
 	public void startStatsLogging() {
-		stats.start(intervalInSec);
-		statsExecutor.scheduleAtFixedRate(stats::report, intervalInSec, intervalInSec, TimeUnit.SECONDS);
-		if (metricsIntervalInSec != -1) {
-			statsExecutor.scheduleAtFixedRate(stats::reportToStream, metricsIntervalInSec, metricsIntervalInSec, TimeUnit.SECONDS);
-		}
+		stats.forEach(s -> {
+			statsExecutor.scheduleAtFixedRate(s::report, s.getIntervalInSec(), s.getIntervalInSec(), TimeUnit.SECONDS);
+		});
 	}
 
 	public void shutdown() {
 		producerExecutor.shutdownNow(); // todo: wait for empty
 		consumerExecutor.shutdownNow();
 		statsExecutor.shutdownNow();
-		stats.stop();
+		stats.forEach(s -> s.stop());
 	}
 }

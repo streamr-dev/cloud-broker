@@ -33,7 +33,7 @@ class RedisReporterSpec extends Specification {
 	RedisClient client
 
 	void setup() {
-		reporter.setStats(new LoggedStats())
+		reporter.setStats(new LoggedStats(10))
 		RedisURI uri = RedisURI.Builder.redis(Config.REDIS_HOST).withPassword(Config.REDIS_PASSWORD).build()
 		client = RedisClient.create(uri)
 	}
@@ -82,7 +82,7 @@ class RedisReporterSpec extends Specification {
 
 	void "report() invokes Stats#onWrittenToRedis(msg)"() {
 		def blockingVariable = new BlockingVariable<StreamMessage>(5)
-		reporter.setStats(new Stats() {
+		Stats stats = new Stats() {
 			@Override
 			void onReadFromKafka(StreamMessage msg) {}
 
@@ -95,7 +95,7 @@ class RedisReporterSpec extends Specification {
 			}
 
 			@Override
-			void start(int intervalInSec) {}
+			void start() {}
 
 			@Override
 			void stop() {}
@@ -104,17 +104,20 @@ class RedisReporterSpec extends Specification {
 			void report() {}
 
 			@Override
-			void reportToStream() {}
+			void onCassandraWriteError() {}
 
 			@Override
-			void onCassandraWriteError() {}
+			int getIntervalInSec() {
+				return 0
+			}
 
 			@Override
 			void setReservedMessageSemaphores(int reservedMessageSemaphores) {}
 
 			@Override
 			void setReservedCassandraSemaphores(int reservedCassandraSemaphores) {}
-		})
+		}
+		reporter.setStats((ArrayList<Stats>)[stats])
 
 		when:
 		reporter.report(testMessage)

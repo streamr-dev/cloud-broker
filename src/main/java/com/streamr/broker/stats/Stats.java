@@ -7,10 +7,10 @@ public interface Stats {
 	void onWrittenToCassandra(StreamMessage msg);
 	void onWrittenToRedis(StreamMessage msg);
 	void onCassandraWriteError();
-	void start(int intervalInSec);
+	int getIntervalInSec();
+	void start();
 	void stop();
 	void report();
-	void reportToStream();
 
 	void setReservedMessageSemaphores(int reservedMessageSemaphores);
 	void setReservedCassandraSemaphores(int reservedCassandraSemaphores);
