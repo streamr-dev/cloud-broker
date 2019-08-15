@@ -8,7 +8,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.concurrent.atomic.AtomicLong;
 
-public abstract class EventsStats implements Stats {
+public abstract class EventsStats {
     protected static final Logger log = LogManager.getLogger();
 
     private String name;
@@ -36,38 +36,31 @@ public abstract class EventsStats implements Stats {
         this.intervalInSec = intervalInSec;
     }
 
-    @Override
     public void start() {
         log.info("{} started. Interval is {} sec(s).", name, intervalInSec);
     }
 
-    @Override
     public void stop() {}
 
-    @Override
     public void onReadFromKafka(StreamMessage msg) {
         totalEventsRead.incrementAndGet();
         totalBytesRead.addAndGet(msg.sizeInBytes());
         lastTimestamp = msg.getTimestamp();
     }
 
-    @Override
     public void onWrittenToCassandra(StreamMessage msg) {
         totalEventsWritten.incrementAndGet();
         totalBytesWritten.addAndGet(msg.sizeInBytes());
     }
 
-    @Override
     public void onWrittenToRedis(StreamMessage msg) {
         totalEventsWrittenRedis.incrementAndGet();
     }
 
-    @Override
     public void onCassandraWriteError() {
         totalWriteErrors.incrementAndGet();
     }
 
-    @Override
     public void report() {
         if (lastBytesRead == totalBytesRead.get()) {
             logReport(null);
@@ -99,17 +92,14 @@ public abstract class EventsStats implements Stats {
         }
     }
 
-    @Override
     public void setReservedMessageSemaphores(int reservedMessageSemaphores) {
         this.reservedMessageSemaphores = reservedMessageSemaphores;
     }
 
-    @Override
     public void setReservedCassandraSemaphores(int reservedCassandraSemaphores) {
         this.reservedCassandraSemaphores = reservedCassandraSemaphores;
     }
 
-    @Override
     public int getIntervalInSec() {
         return intervalInSec;
     }

@@ -1,11 +1,12 @@
 package com.streamr.broker;
 
-import com.streamr.broker.stats.Stats;
+import com.streamr.broker.stats.EventsStats;
+import com.streamr.broker.stats.ReportResult;
 import com.streamr.client.protocol.message_layer.StreamMessage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-class MeanStats implements Stats {
+class MeanStats extends EventsStats {
 	private static final Logger log = LogManager.getLogger();
 
 	private long totalBytesRead = 0;
@@ -17,8 +18,12 @@ class MeanStats implements Stats {
 
 	private long startTime;
 
+	public MeanStats(int interval) {
+		super("MeanStats", interval);
+	}
+
 	@Override
-	public void start(int intervalInSec) {
+	public void start() {
 		startTime = System.currentTimeMillis();
 	}
 
@@ -55,5 +60,10 @@ class MeanStats implements Stats {
 		log.info("Mean read bandwith {} kB/s, {} event/s", (totalBytesRead / timeDiffInSec) / 1000, numOfEventsRead / timeDiffInSec);
 		log.info("Mean Cassandra write bandwith {} kB/s, {} event/s", (totalBytesWrittenToCassandra / timeDiffInSec) / 1000, totalEventsWrittenToCassandra / timeDiffInSec);
 		log.info("Mean Redis write bandwith {} kB/s, {} event/s", (totalBytesWrittenToRedis / timeDiffInSec) / 1000, totalEventsWrittenToRedis / timeDiffInSec);
+	}
+
+	@Override
+	public void logReport(ReportResult reportResult) {
+
 	}
 }

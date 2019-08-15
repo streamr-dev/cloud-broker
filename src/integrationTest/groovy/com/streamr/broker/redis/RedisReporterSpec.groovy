@@ -6,8 +6,9 @@ import com.lambdaworks.redis.codec.ByteArrayCodec
 import com.lambdaworks.redis.pubsub.RedisPubSubListener
 import com.lambdaworks.redis.pubsub.api.sync.RedisPubSubCommands
 import com.streamr.broker.Config
+import com.streamr.broker.stats.EventsStats
 import com.streamr.broker.stats.LoggedStats
-import com.streamr.broker.stats.Stats
+import com.streamr.broker.stats.ReportResult
 import com.streamr.client.protocol.message_layer.StreamMessage
 import com.streamr.client.protocol.message_layer.StreamMessageV30
 import spock.lang.Specification
@@ -82,42 +83,17 @@ class RedisReporterSpec extends Specification {
 
 	void "report() invokes Stats#onWrittenToRedis(msg)"() {
 		def blockingVariable = new BlockingVariable<StreamMessage>(5)
-		Stats stats = new Stats() {
-			@Override
-			void onReadFromKafka(StreamMessage msg) {}
-
-			@Override
-			void onWrittenToCassandra(StreamMessage msg) {}
-
+		EventsStats stats = new EventsStats("stats", 10) {
 			@Override
 			void onWrittenToRedis(StreamMessage msg) {
 				blockingVariable.set(msg)
 			}
-
 			@Override
-			void start() {}
+			void logReport(ReportResult reportResult) {
 
-			@Override
-			void stop() {}
-
-			@Override
-			void report() {}
-
-			@Override
-			void onCassandraWriteError() {}
-
-			@Override
-			int getIntervalInSec() {
-				return 0
 			}
-
-			@Override
-			void setReservedMessageSemaphores(int reservedMessageSemaphores) {}
-
-			@Override
-			void setReservedCassandraSemaphores(int reservedCassandraSemaphores) {}
 		}
-		reporter.setStats((Stats[])[stats])
+		reporter.setStats((EventsStats[])[stats])
 
 		when:
 		reporter.report(testMessage)

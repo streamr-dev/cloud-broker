@@ -1,9 +1,8 @@
 package com.streamr.broker;
 
-import com.streamr.broker.stats.Stats;
+import com.streamr.broker.stats.EventsStats;
 import com.streamr.client.protocol.message_layer.StreamMessage;
 
-import java.util.ArrayList;
 import java.util.concurrent.*;
 import java.util.function.Function;
 
@@ -14,7 +13,7 @@ public class BrokerProcess {
 		r -> new Thread(r, "statsLogger"));
 
 	private final BlockingQueue<StreamMessage> queue;
-	private Stats[] stats;
+	private EventsStats[] stats;
 	private Runnable consumer;
 	private Runnable producer;
 
@@ -22,7 +21,7 @@ public class BrokerProcess {
 		this.queue = new ArrayBlockingQueue<>(queueSize);
 	}
 
-	public void setStats(Stats[] stats) {
+	public void setStats(EventsStats[] stats) {
 		this.stats = stats;
 	}
 
@@ -52,7 +51,7 @@ public class BrokerProcess {
 	}
 
 	public void startStatsLogging() {
-		for(Stats s: stats) {
+		for(EventsStats s: stats) {
 			s.start();
 			statsExecutor.scheduleAtFixedRate(s::report, s.getIntervalInSec(), s.getIntervalInSec(), TimeUnit.SECONDS);
 		}
@@ -62,7 +61,7 @@ public class BrokerProcess {
 		producerExecutor.shutdownNow(); // todo: wait for empty
 		consumerExecutor.shutdownNow();
 		statsExecutor.shutdownNow();
-		for(Stats s: stats) {
+		for(EventsStats s: stats) {
 			s.stop();
 		}
 	}

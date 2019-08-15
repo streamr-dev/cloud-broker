@@ -1,6 +1,6 @@
 package com.streamr.broker
 
-import com.streamr.broker.stats.Stats
+import com.streamr.broker.stats.EventsStats
 import spock.lang.Specification
 
 import java.util.concurrent.ArrayBlockingQueue
@@ -8,7 +8,7 @@ import java.util.concurrent.ArrayBlockingQueue
 class QueueProducerSpec extends Specification {
 	void "accept(message) puts message to queue"() {
 		def queue = new ArrayBlockingQueue(4)
-		QueueProducer queueProducer = new QueueProducer(queue, new Stats[0])
+		QueueProducer queueProducer = new QueueProducer(queue, new EventsStats[0])
 
 		when:
 		queueProducer.accept(ExampleData.MESSAGE_2)
@@ -22,8 +22,8 @@ class QueueProducerSpec extends Specification {
 
 	void "accept(message) invokes Stasts#onReadFromKafka"() {
 		def queue = new ArrayBlockingQueue(4)
-		def stats = Mock(Stats)
-		Stats[] statsArray = [stats]
+		def stats = Mock(EventsStats)
+		EventsStats[] statsArray = [stats]
 		QueueProducer queueProducer = new QueueProducer(queue, statsArray)
 
 		when:
