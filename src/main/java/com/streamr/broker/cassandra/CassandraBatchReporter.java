@@ -4,7 +4,7 @@ import com.datastax.driver.core.*;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.streamr.broker.Reporter;
-import com.streamr.broker.stats.Stats;
+import com.streamr.broker.stats.EventsStats;
 import com.streamr.client.protocol.message_layer.StreamMessage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -30,7 +30,7 @@ public class CassandraBatchReporter implements Reporter {
 	private final Semaphore numOfMessagesSemaphore; // Ensure heap doesn't run out from too many messages
 	private final int cassandraMaxConnections;
 	private final Semaphore cassandraSemaphore;     // Ensure Cassandra doesn't explode from too many async queries
-	private Stats stats;
+	private EventsStats stats;
 	private int failMultiplier = 1;
 
 	public CassandraBatchReporter(String[] cassandraHosts, String cassandraKeySpace, String username, String password) {
@@ -59,7 +59,7 @@ public class CassandraBatchReporter implements Reporter {
 	}
 
 	@Override
-	public void setStats(Stats stats) {
+	public void setStats(EventsStats stats) {
 		this.stats = stats;
 	}
 

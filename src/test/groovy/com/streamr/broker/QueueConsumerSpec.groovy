@@ -1,6 +1,6 @@
 package com.streamr.broker
 
-import com.streamr.broker.stats.Stats
+import com.streamr.broker.stats.EventsStats
 import com.streamr.client.protocol.message_layer.StreamMessage
 import groovy.transform.CompileStatic
 import spock.lang.Specification
@@ -63,7 +63,7 @@ class QueueConsumerSpec extends Specification {
 		int closeInvocations = 0
 
 		@Override
-		void setStats(Stats stats) {}
+		void setStats(EventsStats stats) {}
 
 		@Override
 		void report(StreamMessage msg) {

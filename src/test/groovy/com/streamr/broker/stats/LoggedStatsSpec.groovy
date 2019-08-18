@@ -13,17 +13,17 @@ import java.text.SimpleDateFormat
 class LoggedStatsSpec extends Specification {
 	List<String> recordedLogs = []
 	Appender testHandler = new TestAppender()
-	LoggedStats loggedStats = new LoggedStats()
 
 	void setup() {
-		LogManager.getLogger(LoggedStats).addAppender(testHandler)
+		LogManager.getLogger(EventsStats).addAppender(testHandler)
 	}
 
 	void cleanup() {
-		LogManager.getLogger(LoggedStats).removeAppender(testHandler)
+		LogManager.getLogger(EventsStats).removeAppender(testHandler)
 	}
 
 	void "report() logs 'No new data.' when no events yet occurred"() {
+		LoggedStats loggedStats = new LoggedStats(10)
 		when:
 		loggedStats.report()
 		then:
@@ -31,14 +31,16 @@ class LoggedStatsSpec extends Specification {
 	}
 
 	void "start() logs info"() {
+		LoggedStats loggedStats = new LoggedStats(120)
 		when:
-		loggedStats.start(120)
+		loggedStats.start()
 		then:
-		recordedLogs == ["Statistics logger started. Logging interval is 120 sec(s)."]
+		recordedLogs == ["Statistics logger started. Interval is 120 sec(s)."]
 	}
 
 	void "report() after some events()"() {
-		loggedStats.start(1)
+		LoggedStats loggedStats = new LoggedStats(1)
+		loggedStats.start()
 		loggedStats.onReadFromKafka(ExampleData.MESSAGE_1)
 		loggedStats.onReadFromKafka(ExampleData.MESSAGE_1)
 		loggedStats.onReadFromKafka(ExampleData.MESSAGE_1)
@@ -62,7 +64,7 @@ class LoggedStatsSpec extends Specification {
 		// These numbers depend on the size of the version of StreamrBinaryMessage currently used. If a new version with
 		// a new size is created, the following will fail. These numbers should be updated.
 		recordedLogs == [
-			"Statistics logger started. Logging interval is 1 sec(s).",
+			"Statistics logger started. Interval is 1 sec(s).",
 			"\n\tLast timestamp ${new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(0))}\n" +
 				"\tBackpressure 1.018 kB / 4 events\n" +
 				"\tRead throughput 1.527 kB/s or 6 event/s\n" +
@@ -75,6 +77,7 @@ class LoggedStatsSpec extends Specification {
 	}
 
 	void "logger is thread-safe"() {
+		LoggedStats loggedStats = new LoggedStats(120)
 		final int sizeInBytes = ExampleData.MESSAGE_1.sizeInBytes()
 		final int THREAD_COUNT = 100
 		final int MESSAGE_COUNT = 1000
