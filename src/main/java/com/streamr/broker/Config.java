@@ -12,7 +12,7 @@ public class Config {
 	public static final String CASSANDRA_USERNAME = System.getProperty("cassandra.username", "");
 	public static final String CASSANDRA_PASSWORD = System.getProperty("cassandra.password", "");
 	public static final int QUEUE_SIZE = Integer.parseInt(System.getProperty("queuesize", "200"));
-	public static final int STATS_INTERVAL_IN_SECS = Integer.parseInt(System.getProperty("statsinterval", "30"));
+	public static final int STATS_INTERVAL_IN_SECS = Integer.parseInt(System.getProperty("stats.interval", "30"));
 	public static final int METRICS_INTERVAL_IN_SECS = Integer.parseInt(System.getProperty("metrics.interval", "3"));
 	public static final String METRICS_STREAM_ID = System.getProperty("metrics.stream", "");
 	public static final String METRICS_API_KEY = System.getProperty("metrics.apikey", "");
