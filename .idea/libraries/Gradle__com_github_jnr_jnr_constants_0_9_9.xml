@@ -1,7 +1,7 @@
 <component name="libraryTable">
   <library name="Gradle: com.github.jnr:jnr-constants:0.9.9">
     <CLASSES>
-      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.jnr/jnr-constants/0.9.9/33f23994e09aeb49880aa01e12e8e9eff058c14c/jnr-constants-0.9.9.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/com/github/jnr/jnr-constants/0.9.9/jnr-constants-0.9.9.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

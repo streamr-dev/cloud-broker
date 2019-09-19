@@ -1,7 +1,7 @@
 <component name="libraryTable">
   <library name="Gradle: org.iq80.leveldb:leveldb-api:0.7">
     <CLASSES>
-      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.iq80.leveldb/leveldb-api/0.7/e620acc87a8162f668a5ea62cbe0561560c50044/leveldb-api-0.7.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/iq80/leveldb/leveldb-api/0.7/leveldb-api-0.7.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
