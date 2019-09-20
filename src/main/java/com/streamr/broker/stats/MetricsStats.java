@@ -40,7 +40,7 @@ public class MetricsStats extends EventsStats {
         try {
             client.publish(client.getStream(this.metricsStreamId), payload);
         } catch (IOException e) {
-            log.error(e);
+            log.error("Exception while trying to publish metrics", e);
         }
     }
 }
