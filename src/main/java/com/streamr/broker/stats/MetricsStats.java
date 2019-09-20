@@ -5,15 +5,17 @@ import com.streamr.client.authentication.ApiKeyAuthenticationMethod;
 import com.streamr.client.options.EncryptionOptions;
 import com.streamr.client.options.SigningOptions;
 import com.streamr.client.options.StreamrClientOptions;
+import com.streamr.client.rest.Stream;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 public class MetricsStats extends EventsStats {
-    private StreamrClient client = null;
+    private StreamrClient client;
     private String metricsStreamId;
     private Map<String, Object> lastPayload = new HashMap<>();
+    private Stream stream;
 
     public MetricsStats(int intervalInSec, String metricsStreamId, String metricsApiKey,
                         String wsUrl, String restUrl) {
@@ -24,6 +26,13 @@ public class MetricsStats extends EventsStats {
         StreamrClientOptions options = new StreamrClientOptions(new ApiKeyAuthenticationMethod(metricsApiKey),
                 SigningOptions.getDefault(), EncryptionOptions.getDefault(), wsUrl, restUrl);
         client = new StreamrClient(options);
+    }
+
+    private Stream getStream() throws IOException {
+        if (stream == null) {
+            stream = client.getStream(metricsStreamId);
+        }
+        return stream;
     }
 
     @Override
@@ -38,8 +47,8 @@ public class MetricsStats extends EventsStats {
             lastPayload = payload;
         }
         try {
-            client.publish(client.getStream(this.metricsStreamId), payload);
-        } catch (IOException e) {
+            client.publish(getStream(), payload);
+        } catch (Exception e) {
             log.error("Exception while trying to publish metrics", e);
         }
     }
